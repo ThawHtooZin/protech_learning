@@ -126,5 +126,23 @@
             </form>
         </section>
     </div>
+
+    <section class="mt-6 rounded-xl border border-red-900/50 bg-red-950/15 p-5">
+        <h2 class="text-sm font-semibold text-red-200">{{ __('Delete account') }}</h2>
+        <p class="mt-2 text-sm text-zinc-500">{{ __('Permanently remove this user, their enrollments, progress, and forum activity. This cannot be undone.') }}</p>
+        @if($user->id === auth()->id())
+            <p class="mt-4 text-sm text-amber-300">{{ __('You cannot delete your own account from here.') }}</p>
+        @elseif($user->isAdmin() && \App\Models\User::query()->where('role', \App\Enums\UserRole::Admin)->count() <= 1)
+            <p class="mt-4 text-sm text-amber-300">{{ __('This is the only administrator account and cannot be deleted.') }}</p>
+        @else
+            <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="mt-4" onsubmit="return confirm(@json(__('Are you sure you want to delete this user? This cannot be undone.')));">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="rounded-lg border border-red-800/80 bg-red-950/50 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-950/80">
+                    {{ __('Delete user') }}
+                </button>
+            </form>
+        @endif
+    </section>
 @endsection
 

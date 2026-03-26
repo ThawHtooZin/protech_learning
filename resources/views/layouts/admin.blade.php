@@ -92,6 +92,9 @@
                 @if(session('status'))
                     <p class="mb-6 rounded-lg border border-emerald-800/60 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</p>
                 @endif
+                @if(session('error'))
+                    <p class="mb-6 rounded-lg border border-amber-800/60 bg-amber-950/50 px-4 py-3 text-sm text-amber-100">{{ session('error') }}</p>
+                @endif
                 @if($errors->any())
                     <ul class="mb-6 list-inside list-disc rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-100">
                         @foreach($errors->all() as $err)

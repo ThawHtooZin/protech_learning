@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -97,5 +98,31 @@ class UserAdminController extends Controller
         ])->save();
 
         return back()->with('status', __('Password updated for :name.', ['name' => $user->name]));
+    }
+
+    public function destroy(Request $request, User $user): RedirectResponse
+    {
+        if ($request->user()->id === $user->id) {
+            return back()->with('error', __('You cannot delete your own account.'));
+        }
+
+        if ($user->isAdmin()) {
+            $otherAdmins = User::query()
+                ->where('role', UserRole::Admin)
+                ->whereKeyNot($user->id)
+                ->exists();
+            if (! $otherAdmins) {
+                return back()->with('error', __('Cannot delete the only administrator account.'));
+            }
+        }
+
+        DB::transaction(function () use ($user) {
+            User::query()->where('approved_by_user_id', $user->id)->update(['approved_by_user_id' => null]);
+            $user->notifications()->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            $user->delete();
+        });
+
+        return redirect()->route('admin.users.index')->with('status', __('User deleted.'));
     }
 }

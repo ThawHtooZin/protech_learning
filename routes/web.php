@@ -86,6 +86,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('users/{user}/role', [UserAdminController::class, 'updateRole'])->name('users.role');
     Route::put('users/{user}/courses', [UserAdminController::class, 'updateCourses'])->name('users.courses');
     Route::put('users/{user}/password', [UserAdminController::class, 'updatePassword'])->name('users.password');
+    Route::delete('users/{user}', [UserAdminController::class, 'destroy'])->name('users.destroy');
 
     Route::get('courses', [CourseAdminController::class, 'index'])->name('courses.index');
     Route::get('courses/create', [CourseAdminController::class, 'create'])->name('courses.create');
