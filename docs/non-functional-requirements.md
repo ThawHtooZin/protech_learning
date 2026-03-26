@@ -83,6 +83,7 @@ Functional requirements are defined in the Software Product Specification and th
 |----|-------------|
 | OBS-01 | **Logging:** Log authentication failures, repeated rate-limit hits, and server errors at appropriate levels. |
 | OBS-02 | **Queues (optional):** If notification fan-out or email grows, use queues; v1 in-app notifications may remain synchronous until volume requires async. |
+| OBS-03 | **Study monitoring (audit trail):** Record learner actions in feature-specific append-only tables (`lesson_activity_logs`, `quiz_activity_logs`, `forum_activity_logs`, `course_activity_logs`) with timestamps and rich metadata (score, duration, thread title/category, reply-to). Expose admin-only monitoring UI under `/admin/monitoring`. |
 
 ---
 

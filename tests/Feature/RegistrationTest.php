@@ -10,7 +10,7 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_register_with_profile(): void
+    public function test_user_can_register_with_profile_and_is_pending_approval(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -21,7 +21,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password-12345',
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('approval.notice'));
         $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
         $this->assertDatabaseHas('profiles', ['handle' => 'testuser']);
         $this->assertAuthenticated();

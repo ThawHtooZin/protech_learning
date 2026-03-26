@@ -6,6 +6,7 @@ use App\Models\Lesson;
 use App\Models\LessonComment;
 use App\Services\LessonAccessService;
 use App\Services\MentionService;
+use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -14,6 +15,7 @@ class LessonCommentController extends Controller
     public function __construct(
         private LessonAccessService $lessonAccess,
         private MentionService $mentions,
+        private ActivityLogger $activity,
     ) {}
 
     public function store(Request $request, Lesson $lesson): RedirectResponse
@@ -33,6 +35,11 @@ class LessonCommentController extends Controller
             'user_id' => $user->id,
             'parent_id' => $data['parent_id'] ?? null,
             'body' => $data['body'],
+        ]);
+
+        $this->activity->lessonInstant($user, 'lesson_comment_posted', $lesson->module->course, $lesson, [
+            'comment_id' => $comment->id,
+            'parent_id' => $comment->parent_id,
         ]);
 
         $this->mentions->notifyMentionedUsers($user, $data['body'], [

@@ -5,7 +5,11 @@
 @section('content')
     <div class="mx-auto max-w-2xl">
         <h1 class="text-2xl font-bold text-white">{{ $quiz->title }}</h1>
-        <p class="mt-2 text-sm text-zinc-500">{{ __('Pass') }}: {{ $quiz->pass_threshold_percent }}%</p>
+        @if($quiz->lesson_id)
+            <p class="mt-2 text-sm text-zinc-500">{{ __('Answer the questions and submit to unlock your progress and the next lesson. You’ll see how many you got right; there’s no pass/fail grade.') }}</p>
+        @else
+            <p class="mt-2 text-sm text-zinc-500">{{ __('Module recap: you need at least :percent% correct to unlock the next module.', ['percent' => $quiz->pass_threshold_percent]) }}</p>
+        @endif
 
         <form method="POST" action="{{ route('quizzes.store', $quiz) }}" class="mt-8 space-y-8">
             @csrf

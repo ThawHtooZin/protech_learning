@@ -31,6 +31,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+        if ($user && ! $user->isAdmin() && ! $user->approved_at) {
+            return redirect()->route('approval.notice');
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 

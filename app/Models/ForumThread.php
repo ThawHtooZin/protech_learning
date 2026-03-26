@@ -31,6 +31,11 @@ class ForumThread extends Model
         return $this->hasMany(ForumPost::class)->orderBy('created_at');
     }
 
+    public function rootPosts(): HasMany
+    {
+        return $this->hasMany(ForumPost::class)->whereNull('parent_id')->orderBy('created_at');
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'forum_thread_tag');

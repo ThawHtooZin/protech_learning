@@ -15,12 +15,19 @@
                     <span class="inline-flex items-center gap-2 rounded-full bg-emerald-950/80 px-4 py-1.5 text-sm text-emerald-300 ring-1 ring-emerald-800/50">
                         <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
                         {{ __('Enrolled') }} · {{ $completion }}% {{ __('complete') }}
+                        @if($completion === 100 && $accuracyPercent !== null)
+                            <span class="text-zinc-400">·</span>
+                            <span title="{{ __('Correct answers / total answers across all quizzes in this course') }}">{{ __('Accuracy') }}: {{ $accuracyPercent }}%</span>
+                        @endif
+                    </span>
+                @elseif(!empty($adminFullAccess))
+                    <span class="inline-flex items-center gap-2 rounded-full bg-zinc-800/80 px-4 py-1.5 text-sm text-zinc-200 ring-1 ring-zinc-600/50">
+                        {{ __('Staff') }} · {{ __('full access to lessons and quizzes') }}
                     </span>
                 @else
-                    <form method="POST" action="{{ route('courses.enroll', $course) }}">
-                        @csrf
-                        <button type="submit" class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/30 hover:bg-emerald-500">{{ __('Start this course') }}</button>
-                    </form>
+                    <p class="text-zinc-500">
+                        {{ __('You don’t have access to this course yet. Ask an admin to assign it to your account.') }}
+                    </p>
                 @endif
             @else
                 <p class="text-zinc-500">
@@ -32,13 +39,18 @@
     </div>
 
     @auth
-        @if($enrolled)
+        @if(!empty($showCourseContent))
             @foreach($course->modules as $module)
                 <section class="mb-10">
                     <h2 class="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-500">{{ $module->title }}</h2>
                     <div class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
                         @foreach($module->lessons as $lesson)
+                            @php $canOpen = isset($accessibleLessonIds) && $accessibleLessonIds->contains($lesson->id); @endphp
+                            @if($canOpen)
                             <a href="{{ route('lessons.show', $lesson) }}" class="flex items-center gap-4 border-b border-zinc-800/80 px-4 py-4 last:border-0 hover:bg-zinc-800/40 sm:px-5">
+                            @else
+                            <div class="flex items-center gap-4 border-b border-zinc-800/80 px-4 py-4 last:border-0 opacity-50 sm:px-5" title="{{ __('Complete previous lessons and quizzes in order to unlock.') }}">
+                            @endif
                                 @if(isset($completedLessonIds) && $completedLessonIds->contains($lesson->id))
                                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-700/60 bg-emerald-950/50 text-emerald-400" title="{{ __('Completed') }}">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -54,8 +66,16 @@
                                         <p class="text-xs text-zinc-500">{{ (int) ceil($lesson->duration_seconds / 60) }} {{ __('min') }}</p>
                                     @endif
                                 </div>
+                                @if($canOpen)
                                 <svg class="h-5 w-5 shrink-0 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                @else
+                                <span class="shrink-0 text-xs font-semibold uppercase text-zinc-600">{{ __('Locked') }}</span>
+                                @endif
+                            @if($canOpen)
                             </a>
+                            @else
+                            </div>
+                            @endif
                         @endforeach
                         @php
                             $modQuiz = $module->quizzes->first(fn ($q) => $q->lesson_id === null);

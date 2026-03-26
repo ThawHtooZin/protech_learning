@@ -4,16 +4,17 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseAdminController;
 use App\Http\Controllers\Admin\ForumSetupController;
 use App\Http\Controllers\Admin\LessonAdminController;
+use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\ModuleAdminController;
 use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\QuizAdminController;
+use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CourseCatalogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LessonCommentController;
-use App\Http\Controllers\LessonCompleteController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -31,22 +32,26 @@ Route::middleware('guest')->group(function () {
 
 Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth')->name('logout');
 
+Route::get('approval/pending', fn () => view('auth.approval-pending'))
+    ->middleware('auth')
+    ->name('approval.notice');
+
 Route::get('courses', [CourseCatalogController::class, 'index'])->name('courses.index');
 Route::get('courses/{course}', [CourseCatalogController::class, 'show'])->name('courses.show');
 
 Route::get('u/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
-    Route::post('courses/{course}/enroll', [CourseCatalogController::class, 'enroll'])->name('courses.enroll');
 
-    Route::get('lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
-    Route::post('lessons/{lesson}/complete', [LessonCompleteController::class, 'store'])->name('lessons.complete');
-    Route::post('lessons/{lesson}/comments', [LessonCommentController::class, 'store'])->name('lessons.comments.store');
+    Route::middleware('enrolled.course')->group(function () {
+        Route::get('lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
+        Route::post('lessons/{lesson}/comments', [LessonCommentController::class, 'store'])->name('lessons.comments.store');
 
-    Route::get('quizzes/{quiz}', [QuizTakeController::class, 'show'])->name('quizzes.show');
-    Route::post('quizzes/{quiz}', [QuizTakeController::class, 'store'])->name('quizzes.store');
-    Route::get('quizzes/{quiz}/attempts/{attempt}', [QuizTakeController::class, 'result'])->name('quizzes.result');
+        Route::get('quizzes/{quiz}', [QuizTakeController::class, 'show'])->name('quizzes.show');
+        Route::post('quizzes/{quiz}', [QuizTakeController::class, 'store'])->name('quizzes.store');
+        Route::get('quizzes/{quiz}/attempts/{attempt}', [QuizTakeController::class, 'result'])->name('quizzes.result');
+    });
 
     Route::get('profiles/edit', [ProfileController::class, 'edit'])->name('profiles.edit');
     Route::put('profiles', [ProfileController::class, 'update'])->name('profiles.update');
@@ -65,6 +70,20 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
+
+    Route::get('monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+    Route::get('monitoring/lessons', [MonitoringController::class, 'lessons'])->name('monitoring.lessons');
+    Route::get('monitoring/quizzes', [MonitoringController::class, 'quizzes'])->name('monitoring.quizzes');
+    Route::get('monitoring/forums', [MonitoringController::class, 'forums'])->name('monitoring.forums');
+    Route::get('monitoring/courses', [MonitoringController::class, 'courses'])->name('monitoring.courses');
+    Route::get('users/{user}/monitoring', [MonitoringController::class, 'user'])->name('monitoring.user');
+
+    Route::get('users', [UserAdminController::class, 'index'])->name('users.index');
+    Route::get('users/{user}', [UserAdminController::class, 'show'])->name('users.show');
+    Route::post('users/{user}/approve', [UserAdminController::class, 'approve'])->name('users.approve');
+    Route::post('users/{user}/revoke', [UserAdminController::class, 'revoke'])->name('users.revoke');
+    Route::put('users/{user}/role', [UserAdminController::class, 'updateRole'])->name('users.role');
+    Route::put('users/{user}/courses', [UserAdminController::class, 'updateCourses'])->name('users.courses');
 
     Route::get('courses', [CourseAdminController::class, 'index'])->name('courses.index');
     Route::get('courses/create', [CourseAdminController::class, 'create'])->name('courses.create');

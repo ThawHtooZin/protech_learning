@@ -8,6 +8,7 @@ use App\Models\ForumThread;
 use App\Models\Tag;
 use App\Services\ForumPostRateLimiter;
 use App\Services\MentionService;
+use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,6 +19,7 @@ class ForumController extends Controller
     public function __construct(
         private ForumPostRateLimiter $rateLimiter,
         private MentionService $mentions,
+        private ActivityLogger $activity,
     ) {}
 
     public function index(): View
@@ -78,6 +80,17 @@ class ForumController extends Controller
             'body' => $data['body'],
         ]);
 
+        $this->activity->forumInstant(
+            user: $request->user(),
+            eventType: 'forum_thread_created',
+            category: $forumCategory,
+            thread: $thread,
+            post: $post,
+            meta: [
+                'post_id' => $post->id,
+            ],
+        );
+
         $this->mentions->notifyMentionedUsers($request->user(), $data['body'], [
             'message' => __('You were mentioned in a forum thread.'),
             'base_url' => route('forums.thread', [$forumCategory, $thread]),
@@ -92,8 +105,15 @@ class ForumController extends Controller
     {
         abort_unless($forumThread->forum_category_id === $forumCategory->id, 404);
 
-        $forumThread->load(['tags', 'posts.user.profile']);
-        $posts = $forumThread->posts()->with('user.profile')->orderBy('created_at')->get();
+        $forumThread->load(['tags']);
+
+        $posts = $forumThread->rootPosts()
+            ->with([
+                'user.profile',
+                'replies.user.profile',
+                'replies.replies.user.profile',
+            ])
+            ->paginate(25);
 
         return view('forums.thread', compact('forumCategory', 'forumThread', 'posts'));
     }
@@ -106,13 +126,35 @@ class ForumController extends Controller
 
         $data = $request->validate([
             'body' => ['required', 'string', 'max:20000'],
+            'parent_id' => ['nullable', 'integer'],
         ]);
+
+        $parentId = $data['parent_id'] ?? null;
+        $parent = null;
+        if ($parentId !== null) {
+            $parent = ForumPost::query()->whereKey($parentId)->firstOrFail();
+            abort_unless($parent->forum_thread_id === $forumThread->id, 422);
+        }
 
         $post = ForumPost::query()->create([
             'forum_thread_id' => $forumThread->id,
             'user_id' => $request->user()->id,
+            'parent_id' => $parentId,
             'body' => $data['body'],
         ]);
+
+        $this->activity->forumInstant(
+            user: $request->user(),
+            eventType: 'forum_post_created',
+            category: $forumCategory,
+            thread: $forumThread,
+            post: $post,
+            parentPost: $parent,
+            meta: [
+                'post_id' => $post->id,
+                'parent_post_id' => $parentId,
+            ],
+        );
 
         $this->mentions->notifyMentionedUsers($request->user(), $data['body'], [
             'message' => __('You were mentioned in a forum reply.'),

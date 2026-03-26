@@ -39,8 +39,8 @@ If seed was skipped because users already exist, either use these logins or run 
 | # | What to test | Expected |
 |---|----------------|----------|
 | 1.1 | Open `/` (home) without logging in | Redirects to **Browse** / course **Library**; published courses visible as cards. |
-| 1.2 | Register a **new** user (unique email + handle) | Account created; you land on the **Dashboard** (“Continue learning”); profile exists. |
-| 1.3 | **Sign in** / **Join** pages | Card-style forms; link to switch between sign-in and register. |
+| 1.2 | Register a **new** user (unique email + handle) | Account created; you land on **Pending approval** page; features remain blocked until an **admin approves** the account. |
+| 1.3 | While **pending approval**, try to open `/dashboard` | Redirects to **Pending approval**. |
 | 1.4 | Log out, then sign in again | Session works; you reach the dashboard. |
 | 1.5 | Log in as **Student** | Learner nav only; **Admin panel** button **hidden**. |
 | 1.6 | Log in as **Admin** (learning site) | **Admin panel** appears in the header (amber-style); opens **separate** admin UI with **sidebar**. |
@@ -100,7 +100,7 @@ If seed was skipped because users already exist, either use these logins or run 
 | 6.1 | **Forum** in nav → index | Categories (e.g. General); thread counts if seeded. |
 | 6.2 | Open a category | Thread list. |
 | 6.3 | **New thread** (logged in) | Title + body; optional tags; thread appears. |
-| 6.4 | Reply on a thread | Posts in order. |
+| 6.4 | Reply on a thread | Posts in order; you can reply **to a specific post** (nested thread like StackOverflow). |
 | 6.5 | **Rate limit:** more than **5 forum posts** in one **calendar day** | Further posts blocked (validation message). |
 | 6.6 | Lesson **comments** vs forum posts | Comments do **not** count toward the 5/day **forum** limit. |
 
@@ -132,6 +132,8 @@ If seed was skipped because users already exist, either use these logins or run 
 | 8.10 | **Forum categories** / **Tags** | Create items; they show on the **learning** forum. |
 | 8.11 | **Student** or **Instructor** opens `/admin` | **403** (no access). |
 | 8.12 | **Narrow / mobile width** | Admin **sidebar** stacks or scrolls; still usable. |
+| 8.13 | **Monitoring** (`/admin/monitoring`) | Shows a timeline of learner actions sourced from feature-specific log tables (lesson/quiz/forum/course) with timestamps and key details (score, duration, forum category + thread title, reply-to). |
+| 8.14 | **User → Study monitoring** | From **Users**, open a user and click **Study monitoring** to see that user’s activity timeline. |
 
 ---
 

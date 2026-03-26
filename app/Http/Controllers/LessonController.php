@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
-use App\Models\LessonProgress;
 use App\Services\LessonAccessService;
 use App\Services\MarkdownRenderer;
+use App\Services\ActivityLogger;
 use App\Services\Video\VideoDriverFactory;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,6 +16,7 @@ class LessonController extends Controller
         private LessonAccessService $lessonAccess,
         private MarkdownRenderer $markdown,
         private VideoDriverFactory $videoFactory,
+        private ActivityLogger $activity,
     ) {}
 
     public function show(Request $request, Lesson $lesson): View
@@ -36,31 +37,27 @@ class LessonController extends Controller
         }
 
         if (! $this->lessonAccess->canViewLesson($user, $lesson)) {
-            abort(403);
+            abort(403, __('Complete earlier lessons and quizzes in order to open this one.'));
         }
 
+        $this->activity->lessonInstant($user, 'lesson_opened', $course, $lesson, [
+            'record_progress' => $this->lessonAccess->canRecordProgressForLesson($user, $lesson),
+        ]);
+
         $recordProgress = $this->lessonAccess->canRecordProgressForLesson($user, $lesson);
+        $canTakeLessonQuiz = $this->lessonAccess->canTakeLessonQuiz($user, $lesson);
 
-        if ($recordProgress) {
-            $progress = $user->lessonProgress()
-                ->firstOrCreate(
-                    ['lesson_id' => $lesson->id],
-                    ['last_position_seconds' => 0]
-                );
+        $lessonQuiz = $lesson->quizzes->first();
 
-            if (! $progress->started) {
-                $progress->started = true;
-                $progress->save();
-            }
-        } else {
-            $progress = LessonProgress::make([
-                'user_id' => $user->id,
-                'lesson_id' => $lesson->id,
-                'last_position_seconds' => 0,
-                'started' => false,
-                'watched' => false,
-                'quiz_passed' => false,
-            ]);
+        $progress = $user->lessonProgress()
+            ->firstOrCreate(
+                ['lesson_id' => $lesson->id],
+                ['last_position_seconds' => 0]
+            );
+
+        if (! $progress->started) {
+            $progress->started = true;
+            $progress->save();
         }
 
         $playable = $this->videoFactory->forLesson($lesson)->playable($lesson);
@@ -68,8 +65,6 @@ class LessonController extends Controller
         $docHtml = $lesson->documentation_markdown
             ? $this->markdown->toHtml($lesson->documentation_markdown)
             : '';
-
-        $lessonQuiz = $lesson->quizzes->first();
 
         $moduleQuiz = $lesson->module->quizzes->first();
         $moduleQuizPassed = $moduleQuiz
@@ -79,17 +74,83 @@ class LessonController extends Controller
             ? $this->lessonAccess->canTakeModuleQuiz($user, $moduleQuiz)
             : false;
 
-        $orderedLessons = $course->orderedLessons();
-        $position = $orderedLessons->search(fn (Lesson $l) => $l->id === $lesson->id);
-        $nextLesson = ($position !== false && isset($orderedLessons[$position + 1]))
-            ? $orderedLessons[$position + 1]
-            : null;
+        $course->loadMissing('modules.lessons.quizzes');
+        $completedLessonIds = $this->lessonAccess->completedLessonIdsForCourse($user, $course);
+        $accessibleLessonIds = $this->lessonAccess->accessibleLessonIds($user, $course);
 
-        $lessonIdsInCourse = $course->modules->flatMap(fn ($m) => $m->lessons)->pluck('id');
-        $completedLessonIds = $user->lessonProgress()
-            ->whereIn('lesson_id', $lessonIdsInCourse)
-            ->where('watched', true)
-            ->pluck('lesson_id');
+        $lessonDebugStatus = null;
+        if (config('app.debug')) {
+            $ordered = $course->orderedLessons();
+            $idx = $ordered->search(fn (Lesson $l) => $l->id === $lesson->id);
+            $prevLesson = ($idx !== false && $idx > 0) ? $ordered->get($idx - 1) : null;
+            $canPlayVideo = (bool) $playable;
+            $canSubmitLessonQuizNow = $canTakeLessonQuiz && $lessonQuiz && ! $progress->quiz_passed;
+            $enrolled = $this->lessonAccess->userIsEnrolled($user, $course);
+
+            $watchSummary = $canPlayVideo
+                ? 'Video player is shown (playable payload OK).'
+                : 'Video blocked: no playable URL/embed (check video driver / lesson video_ref).';
+            $quizSummary = ! $lessonQuiz
+                ? 'No lesson quiz on this lesson (admin must add one).'
+                : ($progress->quiz_passed
+                    ? 'Lesson quiz already submitted.'
+                    : ($canTakeLessonQuiz
+                        ? 'Lesson quiz can be taken.'
+                        : 'Lesson quiz locked (complete earlier lessons in order / enroll).'));
+
+            $lessonDebugStatus = [
+                'page' => 'lessons.show',
+                'userId' => $user->id,
+                'isAdmin' => $user->isAdmin(),
+                'enrolledInCourse' => $enrolled,
+                'course' => [
+                    'id' => $course->id,
+                    'slug' => $course->slug,
+                    'title' => $course->title,
+                ],
+                'lesson' => [
+                    'id' => $lesson->id,
+                    'title' => $lesson->title,
+                    'sort_order' => $lesson->sort_order,
+                    'module_id' => $lesson->module_id,
+                ],
+                'access' => [
+                    'canPlayVideo' => $canPlayVideo,
+                    'videoPlaceholderShown' => ! $canPlayVideo,
+                    'canTakeLessonQuiz' => (bool) $canTakeLessonQuiz,
+                    'canSubmitLessonQuizNow' => (bool) $canSubmitLessonQuizNow,
+                    'lessonQuizDone' => (bool) $progress->quiz_passed,
+                    'recordProgress' => (bool) $recordProgress,
+                ],
+                'summary' => [
+                    'watch' => $watchSummary,
+                    'quiz' => $quizSummary,
+                ],
+                'orderInCourse' => [
+                    'index' => $idx !== false ? $idx : null,
+                    'orderedLessonIds' => $ordered->pluck('id')->values()->all(),
+                    'previousLessonId' => $prevLesson?->id,
+                    'previousLessonQuizPassed' => $prevLesson
+                        ? $this->lessonAccess->isLessonCompleteForUser($user, $prevLesson)
+                        : null,
+                ],
+                'flags' => [
+                    'recordProgress' => $recordProgress,
+                    'canTakeLessonQuiz' => $canTakeLessonQuiz,
+                    'canTakeModuleQuiz' => $canTakeModuleQuiz,
+                    'moduleQuizPassed' => $moduleQuizPassed,
+                ],
+                'progressRow' => [
+                    'started' => (bool) $progress->started,
+                    'watched' => (bool) $progress->watched,
+                    'quiz_passed' => (bool) $progress->quiz_passed,
+                ],
+                'lessonQuizId' => $lessonQuiz?->id,
+                'accessibleLessonIds' => $accessibleLessonIds->values()->all(),
+                'completedLessonIds' => $completedLessonIds->values()->all(),
+                'flashStatus' => session('status'),
+            ];
+        }
 
         return view('lessons.show', [
             'course' => $course,
@@ -102,8 +163,10 @@ class LessonController extends Controller
             'moduleQuizPassed' => $moduleQuizPassed,
             'canTakeModuleQuiz' => $canTakeModuleQuiz,
             'recordProgress' => $recordProgress,
+            'canTakeLessonQuiz' => $canTakeLessonQuiz,
             'completedLessonIds' => $completedLessonIds,
-            'nextLesson' => $nextLesson,
+            'accessibleLessonIds' => $accessibleLessonIds,
+            'lessonDebugStatus' => $lessonDebugStatus,
         ]);
     }
 }

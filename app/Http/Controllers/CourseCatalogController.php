@@ -37,23 +37,35 @@ class CourseCatalogController extends Controller
 
         $course->load(['modules.lessons', 'modules.quizzes']);
 
-        $enrolled = $request->user()
-            && $this->lessonAccess->userIsEnrolled($request->user(), $course);
+        $user = $request->user();
+        $enrolled = $user && $this->lessonAccess->userIsEnrolled($user, $course);
+        $adminFullAccess = $user && $user->isAdmin();
+        $showCourseContent = $enrolled || $adminFullAccess;
 
-        $completion = $request->user() && $enrolled
-            ? $this->lessonAccess->courseCompletionPercent($request->user(), $course)
-            : 0;
-
+        $completion = 0;
         $completedLessonIds = collect();
-        if ($request->user() && $enrolled) {
-            $ids = $course->modules->flatMap(fn ($m) => $m->lessons)->pluck('id');
-            $completedLessonIds = $request->user()->lessonProgress()
-                ->whereIn('lesson_id', $ids)
-                ->where('watched', true)
-                ->pluck('lesson_id');
+        $accessibleLessonIds = collect();
+        $accuracyPercent = null;
+
+        if ($user && $showCourseContent) {
+            $accessibleLessonIds = $this->lessonAccess->accessibleLessonIds($user, $course);
+            $completedLessonIds = $this->lessonAccess->completedLessonIdsForCourse($user, $course);
+            $completion = $this->lessonAccess->courseCompletionPercent($user, $course);
+            if ($completion === 100) {
+                $accuracyPercent = $this->lessonAccess->courseAnswerAccuracyPercent($user, $course);
+            }
         }
 
-        return view('courses.show', compact('course', 'enrolled', 'completion', 'completedLessonIds'));
+        return view('courses.show', compact(
+            'course',
+            'enrolled',
+            'adminFullAccess',
+            'showCourseContent',
+            'completion',
+            'completedLessonIds',
+            'accessibleLessonIds',
+            'accuracyPercent',
+        ));
     }
 
     public function enroll(Request $request, Course $course): RedirectResponse

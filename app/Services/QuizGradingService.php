@@ -47,22 +47,27 @@ class QuizGradingService
             }
 
             $scorePercent = $total > 0 ? (int) round(100 * $correct / $total) : 0;
-            $passed = $scorePercent >= (int) $quiz->pass_threshold_percent;
+            // Lesson quizzes: any submission unlocks progress (no pass/fail gate). Module recaps: threshold gates next module.
+            $isLessonQuiz = (bool) $quiz->lesson_id;
+            $passed = $isLessonQuiz
+                ? true
+                : ($scorePercent >= (int) $quiz->pass_threshold_percent);
 
             $attempt->update([
                 'score_percent' => $scorePercent,
                 'passed' => $passed,
             ]);
 
-            if ($passed) {
-                if ($quiz->lesson_id) {
-                    $progress = LessonProgress::query()->firstOrCreate(
-                        ['user_id' => $user->id, 'lesson_id' => $quiz->lesson_id],
-                        ['last_position_seconds' => 0]
-                    );
-                    $progress->quiz_passed = true;
-                    $progress->save();
-                }
+            if ($quiz->lesson_id) {
+                $progress = LessonProgress::query()->firstOrCreate(
+                    ['user_id' => $user->id, 'lesson_id' => $quiz->lesson_id],
+                    ['last_position_seconds' => 0]
+                );
+                $progress->started = true;
+                $progress->watched = true;
+                $progress->quiz_passed = true;
+                $progress->last_checkpoint_at = now();
+                $progress->save();
             }
 
             return $attempt->fresh(['answers']);

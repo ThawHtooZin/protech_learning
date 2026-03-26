@@ -1,6 +1,6 @@
 # Sequence diagrams — critical flows
 
-Three flows that are easy to get wrong without an explicit sequence: **mark lesson complete**, **quiz attempt**, **mention**.
+Three flows that are easy to get wrong without an explicit sequence: **mark lesson complete**, **quiz attempt**, **mention**. We also capture **study monitoring events** for admin review.
 
 These sequences are **server-side and HTTP**; they are the same whether the user arrived via the **learner** or **admin** UI (admin does not change learner progress mechanics).
 
@@ -15,13 +15,16 @@ sequenceDiagram
   participant Browser
   participant LessonPage as Lesson_controller
   participant Complete as Lesson_complete_controller
+  participant Monitor as Activity_logger
   participant DB as MySQL
   Browser ->> LessonPage: GET lesson page
   LessonPage ->> DB: load lesson + enrollment + progress
+  LessonPage ->> Monitor: insert lesson_activity_logs lesson_opened
   LessonPage ->> Browser: HTML + checkbox state
   Browser ->> Complete: POST complete completed=0|1
   Complete ->> Complete: auth + enrolled + in-sequence for recording
   Complete ->> DB: update lesson_progress watched, started
+  Complete ->> Monitor: insert lesson_activity_logs lesson_marked_complete|incomplete
   Complete ->> Browser: redirect + flash
 ```
 
@@ -37,8 +40,11 @@ sequenceDiagram
 sequenceDiagram
   participant User
   participant QuizCtrl as Quiz_controller
+  participant Monitor as Activity_logger
   participant GradeSvc as Grading_service
   participant DB as MySQL
+  User ->> QuizCtrl: GET quiz page
+  QuizCtrl ->> Monitor: insert quiz_activity_logs quiz_started
   User ->> QuizCtrl: POST quiz_id answers
   QuizCtrl ->> QuizCtrl: auth + can access quiz
   QuizCtrl ->> GradeSvc: gradeAttempt
@@ -49,6 +55,7 @@ sequenceDiagram
   GradeSvc ->> GradeSvc: compute score vs threshold
   GradeSvc ->> DB: update lesson_progress quiz_passed if lesson quiz
   GradeSvc ->> DB: commit
+  QuizCtrl ->> Monitor: update quiz_activity_logs quiz_started -> quiz_submitted + score/passed/duration
   QuizCtrl ->> User: result passed or failed
 ```
 
@@ -64,12 +71,14 @@ sequenceDiagram
 sequenceDiagram
   participant User
   participant Ctrl as Forum_or_Comment_controller
+  participant Monitor as Activity_logger
   participant Mention as Mention_parser
   participant Notify as Notification_dispatcher
   participant DB as MySQL
   User ->> Ctrl: POST body
   Ctrl ->> Ctrl: auth + rate limit forum if forum
   Ctrl ->> DB: insert post or comment
+  Ctrl ->> Monitor: insert forum_activity_logs forum_* OR lesson_activity_logs lesson_comment_posted
   Ctrl ->> Mention: extractHandles body
   Mention ->> DB: resolve handles to user ids
   Ctrl ->> Notify: for each mentioned user
