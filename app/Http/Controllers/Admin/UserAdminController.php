@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class UserAdminController extends Controller
@@ -84,5 +85,17 @@ class UserAdminController extends Controller
 
         return back()->with('status', __('Course access updated.'));
     }
-}
 
+    public function updatePassword(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $user->forceFill([
+            'password' => $validated['password'],
+        ])->save();
+
+        return back()->with('status', __('Password updated for :name.', ['name' => $user->name]));
+    }
+}

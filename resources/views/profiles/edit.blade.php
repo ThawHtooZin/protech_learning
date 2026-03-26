@@ -24,5 +24,29 @@
             </div>
             <button type="submit" class="w-full rounded-md bg-emerald-600 py-2 font-medium text-white hover:bg-emerald-500">{{ __('Save') }}</button>
         </form>
+
+        <div class="mt-10 border-t border-zinc-800 pt-10">
+            <h2 class="mb-4 text-lg font-semibold text-white">{{ __('Change password') }}</h2>
+            <form method="POST" action="{{ route('profiles.password') }}" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label class="block text-sm text-zinc-400">{{ __('Current password') }}</label>
+                    <input type="password" name="current_password" required autocomplete="current-password"
+                        class="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm text-zinc-400">{{ __('New password') }}</label>
+                    <input type="password" name="password" required autocomplete="new-password"
+                        class="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm text-zinc-400">{{ __('Confirm new password') }}</label>
+                    <input type="password" name="password_confirmation" required autocomplete="new-password"
+                        class="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white">
+                </div>
+                <button type="submit" class="w-full rounded-md border border-zinc-600 bg-zinc-800 py-2 font-medium text-white hover:bg-zinc-700">{{ __('Update password') }}</button>
+            </form>
+        </div>
     </div>
 @endsection

@@ -4,8 +4,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseAdminController;
 use App\Http\Controllers\Admin\ForumSetupController;
 use App\Http\Controllers\Admin\LessonAdminController;
-use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\ModuleAdminController;
+use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\QuizAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
@@ -55,6 +55,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
 
     Route::get('profiles/edit', [ProfileController::class, 'edit'])->name('profiles.edit');
     Route::put('profiles', [ProfileController::class, 'update'])->name('profiles.update');
+    Route::put('profiles/password', [ProfileController::class, 'updatePassword'])->name('profiles.password');
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
@@ -84,6 +85,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('users/{user}/revoke', [UserAdminController::class, 'revoke'])->name('users.revoke');
     Route::put('users/{user}/role', [UserAdminController::class, 'updateRole'])->name('users.role');
     Route::put('users/{user}/courses', [UserAdminController::class, 'updateCourses'])->name('users.courses');
+    Route::put('users/{user}/password', [UserAdminController::class, 'updatePassword'])->name('users.password');
 
     Route::get('courses', [CourseAdminController::class, 'index'])->name('courses.index');
     Route::get('courses/create', [CourseAdminController::class, 'create'])->name('courses.create');

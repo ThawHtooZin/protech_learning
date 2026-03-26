@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Profile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -37,5 +38,19 @@ class ProfileController extends Controller
         $profile->update($data);
 
         return redirect()->route('profiles.show', $profile)->with('status', __('Profile updated.'));
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $request->user()->forceFill([
+            'password' => $request->input('password'),
+        ])->save();
+
+        return redirect()->route('profiles.edit')->with('status', __('Password changed.'));
     }
 }

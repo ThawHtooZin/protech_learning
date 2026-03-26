@@ -52,6 +52,28 @@
                     </form>
                 @endif
             </div>
+
+            <hr class="my-6 border-zinc-800" />
+
+            <h2 class="text-sm font-semibold text-white">{{ __('Set password') }}</h2>
+            <p class="mt-1 text-xs text-zinc-500">{{ __('Sets a new password for this account. The user is not notified automatically.') }}</p>
+            <form method="POST" action="{{ route('admin.users.password', $user) }}" class="mt-4 space-y-3">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-zinc-500">{{ __('New password') }}</label>
+                    <input type="password" name="password" required autocomplete="new-password"
+                        class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-zinc-500">{{ __('Confirm new password') }}</label>
+                    <input type="password" name="password_confirmation" required autocomplete="new-password"
+                        class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
+                </div>
+                <button type="submit" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">
+                    {{ __('Update password') }}
+                </button>
+            </form>
         </section>
 
         <section class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 lg:col-span-2">
