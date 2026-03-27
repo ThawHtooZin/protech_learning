@@ -162,7 +162,7 @@ class HtmlLessonQuizzesSeeder extends Seeder
             Quiz::query()->where('lesson_id', $lesson->id)->whereNull('module_id')->delete();
 
             $questionIds = [];
-            foreach ($pack as $row) {
+            foreach ($pack as $qi => $row) {
                 [$body, $correct, $w1, $w2] = $row;
                 $q = Question::query()->create([
                     'technology' => 'HTML',
@@ -171,11 +171,19 @@ class HtmlLessonQuizzesSeeder extends Seeder
                     'type' => 'mcq',
                 ]);
                 $questionIds[] = $q->id;
-                foreach ([
+
+                $options = [
                     ['body' => $correct, 'is_correct' => true],
                     ['body' => $w1, 'is_correct' => false],
                     ['body' => $w2, 'is_correct' => false],
-                ] as $i => $opt) {
+                ];
+                // Avoid every correct answer at sort_order 0 (always "A"): rotate per lesson + slot.
+                $rotate = ($n + $qi) % 3;
+                if ($rotate > 0) {
+                    $options = array_merge(array_slice($options, $rotate), array_slice($options, 0, $rotate));
+                }
+
+                foreach ($options as $i => $opt) {
                     QuestionOption::query()->create([
                         'question_id' => $q->id,
                         'body' => $opt['body'],
