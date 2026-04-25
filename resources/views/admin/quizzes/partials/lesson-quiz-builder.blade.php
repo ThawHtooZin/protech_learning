@@ -1,10 +1,12 @@
 {{--
   Expects: $formAction, $httpMethod, $submitLabel, $course, $module, $lesson, $quiz (nullable),
-  $questionBank, $technologies, $topics, $initialQuestionIds
+  $questionBank, $technologies, $topics, $initialQuestionIds, $questionReturnQuery (string, may be empty)
 --}}
 @php
     $titleValue = old('title', $quiz->title ?? '');
     $thresholdValue = old('pass_threshold_percent', $quiz->pass_threshold_percent ?? 70);
+    $questionReturnQuery = $questionReturnQuery ?? '';
+    $questionEditBaseUrl = rtrim(url('/admin/questions'), '/');
 @endphp
 <script>
     document.addEventListener('alpine:init', () => {
@@ -12,12 +14,18 @@
             return;
         }
         window.__lessonQuizPickerRegistered = true;
-        Alpine.data('lessonQuizPicker', (bank, initialSelectedIds) => ({
+        Alpine.data('lessonQuizPicker', (bank, initialSelectedIds, returnQuery) => ({
             bank,
+            returnQuery: returnQuery || '',
+            questionEditBaseUrl: @js($questionEditBaseUrl),
             filterText: '',
             filterTech: '',
             filterTopic: '',
             selectedIds: initialSelectedIds && initialSelectedIds.length ? [...initialSelectedIds] : [],
+            editUrl(id) {
+                const q = this.returnQuery;
+                return `${this.questionEditBaseUrl}/${id}/edit${q ? `?${q}` : ''}`;
+            },
             questionById(id) {
                 return this.bank.find((q) => q.id === id);
             },
@@ -76,7 +84,7 @@
     });
 </script>
 
-<form method="POST" action="{{ $formAction }}" class="space-y-6" x-data="lessonQuizPicker(@js($questionBank), @js($initialQuestionIds))">
+<form method="POST" action="{{ $formAction }}" class="space-y-6" x-data="lessonQuizPicker(@js($questionBank), @js($initialQuestionIds), @js($questionReturnQuery))">
     @csrf
     @if(strtoupper($httpMethod) === 'PUT')
         @method('PUT')
@@ -125,6 +133,7 @@
                                     <span x-text="questionById(qid)?.type"></span>
                                 </p>
                             </div>
+                            <a :href="editUrl(qid)" class="shrink-0 self-start rounded border border-zinc-700 px-2 py-1 text-xs text-emerald-400 hover:bg-zinc-800">{{ __('Edit Q') }}</a>
                             <button type="button" class="shrink-0 self-start rounded px-2 py-1 text-xs text-red-400 hover:bg-red-950/40" @click="remove(qid)">{{ __('Remove') }}</button>
                             <input type="hidden" name="question_ids[]" :value="qid">
                         </li>
@@ -166,7 +175,10 @@
                                 <span x-text="q.topic"></span>
                             </p>
                         </div>
-                        <button type="button" @click="add(q.id)" class="shrink-0 rounded-md bg-zinc-700 px-2 py-1 text-xs text-white hover:bg-emerald-700">{{ __('Add') }}</button>
+                        <div class="flex shrink-0 flex-col items-end gap-1">
+                            <a :href="editUrl(q.id)" class="text-xs text-emerald-400 hover:underline">{{ __('Edit') }}</a>
+                            <button type="button" @click="add(q.id)" class="rounded-md bg-zinc-700 px-2 py-1 text-xs text-white hover:bg-emerald-700">{{ __('Add') }}</button>
+                        </div>
                     </div>
                 </template>
             </div>

@@ -9,6 +9,6 @@
         <a href="{{ route('admin.questions.index') }}" class="text-sm text-emerald-400 hover:underline">← {{ __('Back to question bank') }}</a>
     </div>
     <div class="mx-auto max-w-2xl">
-        @include('admin.questions._form', ['question' => null])
+        @include('admin.questions._form', ['question' => null, 'lessonQuizReturn' => null])
     </div>
 @endsection

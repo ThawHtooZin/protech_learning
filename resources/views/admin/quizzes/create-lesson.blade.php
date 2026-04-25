@@ -29,6 +29,12 @@
             'technologies' => $technologies,
             'topics' => $topics,
             'initialQuestionIds' => $initialQuestionIds,
+            'questionReturnQuery' => http_build_query([
+                'return_context' => 'lesson_quiz',
+                'return_course_id' => $course->id,
+                'return_module_id' => $module->id,
+                'return_lesson_id' => $lesson->id,
+            ]),
         ])
     </div>
 @endsection
