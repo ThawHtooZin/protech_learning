@@ -51,12 +51,23 @@
                     ·
                     <a href="{{ route('admin.quizzes.module.create', [$course, $module]) }}" class="text-amber-400 hover:underline">{{ __('Module quiz') }}</a>
                 </p>
-                <ul class="mt-3 space-y-1 text-sm">
+                <ul class="mt-3 space-y-2 text-sm">
                     @foreach($module->lessons as $lesson)
-                        <li class="flex flex-wrap items-center gap-2">
-                            <span class="text-zinc-300">{{ $lesson->title }}</span>
-                            <a href="{{ route('admin.lessons.edit', [$course, $module, $lesson]) }}" class="text-emerald-400 hover:underline">{{ __('Edit') }}</a>
-                            <a href="{{ route('admin.quizzes.lesson.create', [$course, $module, $lesson]) }}" class="text-xs text-amber-400 hover:underline">{{ __('Lesson quiz') }}</a>
+                        @php($lessonQuiz = $lesson->quizzes->first())
+                        <li class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-zinc-800/80 pb-2 last:border-0 last:pb-0">
+                            <span class="min-w-0 flex-1 font-medium text-zinc-200">{{ $lesson->title }}</span>
+                            <span class="flex flex-wrap items-center gap-2 text-xs">
+                                @if($lessonQuiz)
+                                    <span class="rounded border border-emerald-800/60 bg-emerald-950/40 px-2 py-0.5 text-emerald-300" title="{{ __('Pass threshold') }}">
+                                        {{ $lessonQuiz->questions_count }} {{ __('Q') }} · {{ $lessonQuiz->pass_threshold_percent }}%
+                                    </span>
+                                    <a href="{{ route('admin.quizzes.lesson.edit', [$course, $module, $lesson]) }}" class="text-amber-400 hover:underline">{{ __('Edit quiz') }}</a>
+                                @else
+                                    <span class="rounded border border-zinc-700 px-2 py-0.5 text-zinc-500">{{ __('No quiz') }}</span>
+                                    <a href="{{ route('admin.quizzes.lesson.create', [$course, $module, $lesson]) }}" class="text-amber-400 hover:underline">{{ __('Add quiz') }}</a>
+                                @endif
+                                <a href="{{ route('admin.lessons.edit', [$course, $module, $lesson]) }}" class="text-emerald-400 hover:underline">{{ __('Edit lesson') }}</a>
+                            </span>
                         </li>
                     @endforeach
                 </ul>

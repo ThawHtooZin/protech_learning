@@ -5,7 +5,21 @@
 @section('heading', __('Edit lesson'))
 
 @section('content')
-    <div class="mx-auto max-w-2xl">
+    <div class="mx-auto max-w-2xl space-y-8">
+        @if($lessonQuiz)
+            <section class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-4" aria-labelledby="lesson-quiz-admin-heading">
+                <h2 id="lesson-quiz-admin-heading" class="text-sm font-semibold text-white">{{ __('Lesson quiz') }}</h2>
+                <p class="mt-1 text-xs text-zinc-500">{{ __('Pass threshold') }}: {{ $lessonQuiz->pass_threshold_percent }}% · {{ $lessonQuiz->questions_count }} {{ __('questions') }} · {{ $lessonQuiz->attempts_count }} {{ __('attempts') }}</p>
+                <a href="{{ route('admin.quizzes.lesson.edit', [$course, $module, $lesson]) }}" class="mt-3 inline-flex rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-500">{{ __('Edit quiz') }}</a>
+            </section>
+        @else
+            <section class="rounded-lg border border-dashed border-zinc-700 bg-zinc-900/20 p-4" aria-labelledby="lesson-quiz-missing-heading">
+                <h2 id="lesson-quiz-missing-heading" class="text-sm font-semibold text-white">{{ __('Lesson quiz') }}</h2>
+                <p class="mt-1 text-xs text-zinc-500">{{ __('No quiz on this lesson yet. Learners need a lesson quiz to unlock the next lesson in order.') }}</p>
+                <a href="{{ route('admin.quizzes.lesson.create', [$course, $module, $lesson]) }}" class="mt-3 inline-flex rounded-md border border-amber-700 px-4 py-2 text-sm font-medium text-amber-300 hover:bg-amber-950/40">{{ __('Add lesson quiz') }}</a>
+            </section>
+        @endif
+
         <form method="POST" action="{{ route('admin.lessons.update', [$course, $module, $lesson]) }}" class="space-y-4">
             @csrf
             @method('PUT')

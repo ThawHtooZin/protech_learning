@@ -104,7 +104,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('courses/{course}/modules/{module}/lessons/{lesson}', [LessonAdminController::class, 'update'])->name('lessons.update');
 
     Route::get('courses/{course}/modules/{module}/lessons/{lesson}/quiz/create', [QuizAdminController::class, 'createLessonQuiz'])->name('quizzes.lesson.create');
+    Route::get('courses/{course}/modules/{module}/lessons/{lesson}/quiz/edit', [QuizAdminController::class, 'editLessonQuiz'])->name('quizzes.lesson.edit');
     Route::post('courses/{course}/modules/{module}/lessons/{lesson}/quiz', [QuizAdminController::class, 'storeLessonQuiz'])->name('quizzes.lesson.store');
+    Route::put('courses/{course}/modules/{module}/lessons/{lesson}/quiz', [QuizAdminController::class, 'updateLessonQuiz'])->name('quizzes.lesson.update');
+    Route::delete('courses/{course}/modules/{module}/lessons/{lesson}/quiz', [QuizAdminController::class, 'destroyLessonQuiz'])->name('quizzes.lesson.destroy');
     Route::get('courses/{course}/modules/{module}/quiz/create', [QuizAdminController::class, 'createModuleQuiz'])->name('quizzes.module.create');
     Route::post('courses/{course}/modules/{module}/quiz', [QuizAdminController::class, 'storeModuleQuiz'])->name('quizzes.module.store');
 

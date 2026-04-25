@@ -44,7 +44,10 @@ class CourseAdminController extends Controller
 
     public function edit(Course $course): View
     {
-        $course->load(['modules.lessons', 'modules.quizzes']);
+        $course->load([
+            'modules.lessons.quizzes' => fn ($q) => $q->withCount('questions'),
+            'modules.quizzes',
+        ]);
 
         return view('admin.courses.edit', compact('course'));
     }
