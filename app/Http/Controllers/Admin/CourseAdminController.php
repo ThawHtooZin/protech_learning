@@ -45,6 +45,8 @@ class CourseAdminController extends Controller
     public function edit(Course $course): View
     {
         $course->load([
+            'modules' => fn ($q) => $q->orderBy('sort_order'),
+            'modules.lessons' => fn ($q) => $q->orderBy('sort_order'),
             'modules.lessons.quizzes' => fn ($q) => $q->withCount('questions'),
             'modules.quizzes',
         ]);

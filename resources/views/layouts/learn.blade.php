@@ -45,7 +45,12 @@
                     @endif
                     @if(auth()->user()->profile)
                         <a href="{{ route('profiles.show', auth()->user()->profile) }}"
-                            class="rounded-md px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white">{{ __('Profile') }}</a>
+                            class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white">
+                            @if(auth()->user()->profile->avatarUrl())
+                                <img src="{{ auth()->user()->profile->avatarUrl() }}" alt="" class="h-6 w-6 rounded-full object-cover">
+                            @endif
+                            {{ __('Profile') }}
+                        </a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf

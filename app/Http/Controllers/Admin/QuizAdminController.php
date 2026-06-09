@@ -140,17 +140,36 @@ class QuizAdminController extends Controller
         return redirect()->route('admin.courses.edit', $course)->with('status', __('Lesson quiz removed. Learner completion flags for this lesson were reset.'));
     }
 
-    public function createModuleQuiz(Course $course, Module $module): View
+    public function createModuleQuiz(Course $course, Module $module): RedirectResponse|View
     {
         abort_unless($module->course_id === $course->id, 404);
-        $questions = Question::query()->orderBy('technology')->orderBy('topic')->get();
 
-        return view('admin.quizzes.create-module', compact('course', 'module', 'questions'));
+        if ($module->quizzes()->whereNull('lesson_id')->exists()) {
+            return redirect()
+                ->route('admin.quizzes.module.edit', [$course, $module])
+                ->with('status', __('This module already has a recap quiz — use the editor.'));
+        }
+
+        $form = $this->lessonQuizPickerData();
+
+        return view('admin.quizzes.create-module', [
+            'course' => $course,
+            'module' => $module,
+            'quiz' => null,
+            'initialQuestionIds' => [],
+            ...$form,
+        ]);
     }
 
     public function storeModuleQuiz(Request $request, Course $course, Module $module): RedirectResponse
     {
         abort_unless($module->course_id === $course->id, 404);
+
+        if ($module->quizzes()->whereNull('lesson_id')->exists()) {
+            return redirect()
+                ->route('admin.quizzes.module.edit', [$course, $module])
+                ->with('status', __('This module already has a recap quiz.'));
+        }
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -171,6 +190,77 @@ class QuizAdminController extends Controller
         }
 
         return redirect()->route('admin.courses.edit', $course)->with('status', __('Module quiz saved.'));
+    }
+
+    public function editModuleQuiz(Course $course, Module $module): RedirectResponse|View
+    {
+        abort_unless($module->course_id === $course->id, 404);
+
+        $quiz = $module->quizzes()->whereNull('lesson_id')->withCount('attempts')->with('questions')->first();
+        if (! $quiz) {
+            return redirect()
+                ->route('admin.quizzes.module.create', [$course, $module])
+                ->with('status', __('Add a module recap quiz first.'));
+        }
+
+        $form = $this->lessonQuizPickerData();
+        $initialQuestionIds = $quiz->questions->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+
+        return view('admin.quizzes.edit-module', [
+            'course' => $course,
+            'module' => $module,
+            'quiz' => $quiz,
+            'initialQuestionIds' => $initialQuestionIds,
+            ...$form,
+        ]);
+    }
+
+    public function updateModuleQuiz(Request $request, Course $course, Module $module): RedirectResponse
+    {
+        abort_unless($module->course_id === $course->id, 404);
+
+        $quiz = $module->quizzes()->whereNull('lesson_id')->first();
+        if (! $quiz) {
+            return redirect()
+                ->route('admin.quizzes.module.create', [$course, $module])
+                ->with('status', __('No module quiz yet.'));
+        }
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'pass_threshold_percent' => ['required', 'integer', 'min:1', 'max:100'],
+            'question_ids' => ['required', 'array', 'min:1'],
+            'question_ids.*' => ['integer', 'distinct', 'exists:questions,id'],
+        ]);
+
+        $quiz->update([
+            'title' => $data['title'],
+            'pass_threshold_percent' => $data['pass_threshold_percent'],
+        ]);
+
+        $sync = [];
+        foreach ($data['question_ids'] as $i => $qid) {
+            $sync[(int) $qid] = ['sort_order' => $i];
+        }
+        $quiz->questions()->sync($sync);
+
+        return redirect()
+            ->route('admin.quizzes.module.edit', [$course, $module])
+            ->with('status', __('Module quiz updated.'));
+    }
+
+    public function destroyModuleQuiz(Course $course, Module $module): RedirectResponse
+    {
+        abort_unless($module->course_id === $course->id, 404);
+
+        $quiz = $module->quizzes()->whereNull('lesson_id')->first();
+        if (! $quiz) {
+            return redirect()->route('admin.courses.edit', $course)->with('status', __('No module quiz to remove.'));
+        }
+
+        $quiz->delete();
+
+        return redirect()->route('admin.courses.edit', $course)->with('status', __('Module quiz removed.'));
     }
 
     /**

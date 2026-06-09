@@ -35,6 +35,11 @@ class YoutubeVideoDriver implements VideoDriver
         return $this->normalizeToVideoId($ref) !== '';
     }
 
+    public function videoIdFromLesson(Lesson $lesson): string
+    {
+        return $this->normalizeToVideoId($lesson->video_ref);
+    }
+
     /**
      * @return array<string, string>
      */

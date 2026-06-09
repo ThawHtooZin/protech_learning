@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Services\LessonDeleteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LessonAdminController extends Controller
 {
+    public function __construct(
+        private LessonDeleteService $lessonDelete,
+    ) {}
     public function create(Course $course, Module $module): View
     {
         abort_unless($module->course_id === $course->id, 404);
@@ -69,5 +73,17 @@ class LessonAdminController extends Controller
         $lesson->update($data);
 
         return redirect()->route('admin.courses.edit', $course)->with('status', __('Lesson saved.'));
+    }
+
+    public function destroy(Course $course, Module $module, Lesson $lesson): RedirectResponse
+    {
+        abort_unless($module->course_id === $course->id && $lesson->module_id === $module->id, 404);
+
+        $title = $lesson->title;
+        $this->lessonDelete->delete($lesson);
+
+        return redirect()
+            ->route('admin.courses.edit', $course)
+            ->with('status', __('Lesson “:title” was deleted.', ['title' => $title]));
     }
 }

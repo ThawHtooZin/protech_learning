@@ -60,7 +60,18 @@ class LessonController extends Controller
             $progress->save();
         }
 
-        $playable = $this->videoFactory->forLesson($lesson)->playable($lesson);
+        $driver = $this->videoFactory->forLesson($lesson);
+        $playable = $driver->playable($lesson);
+        $playerKind = null;
+        $youtubeVideoId = null;
+        if ($lesson->video_driver === 'youtube' && $playable) {
+            $playerKind = 'youtube';
+            $youtubeVideoId = method_exists($driver, 'videoIdFromLesson')
+                ? $driver->videoIdFromLesson($lesson)
+                : null;
+        } elseif ($lesson->video_driver === 'r2' && $playable?->signedUrl) {
+            $playerKind = 'html5';
+        }
 
         $docHtml = $lesson->documentation_markdown
             ? $this->markdown->toHtml($lesson->documentation_markdown)
@@ -157,6 +168,8 @@ class LessonController extends Controller
             'lesson' => $lesson,
             'progress' => $progress,
             'playable' => $playable,
+            'playerKind' => $playerKind,
+            'youtubeVideoId' => $youtubeVideoId,
             'docHtml' => $docHtml,
             'lessonQuiz' => $lessonQuiz,
             'moduleQuiz' => $moduleQuiz,

@@ -14,7 +14,7 @@ class ForumSetupController extends Controller
 {
     public function categories(): View
     {
-        $categories = ForumCategory::query()->orderBy('sort_order')->get();
+        $categories = ForumCategory::query()->withCount('threads')->orderBy('sort_order')->get();
 
         return view('admin.forums.categories', compact('categories'));
     }
@@ -36,9 +36,47 @@ class ForumSetupController extends Controller
         return redirect()->route('admin.forums.categories')->with('status', __('Category created.'));
     }
 
+    public function updateCategory(Request $request, ForumCategory $forumCategory): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+        ]);
+
+        $forumCategory->update(['name' => $data['name']]);
+
+        return redirect()->route('admin.forums.categories')->with('status', __('Category updated.'));
+    }
+
+    public function destroyCategory(ForumCategory $forumCategory): RedirectResponse
+    {
+        if ($forumCategory->threads()->exists()) {
+            return redirect()
+                ->route('admin.forums.categories')
+                ->withErrors(['category' => __('Cannot delete a category that has threads.')]);
+        }
+
+        $forumCategory->delete();
+
+        return redirect()->route('admin.forums.categories')->with('status', __('Category deleted.'));
+    }
+
+    public function reorderCategories(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['integer', 'distinct', 'exists:forum_categories,id'],
+        ]);
+
+        foreach ($data['category_ids'] as $index => $id) {
+            ForumCategory::query()->whereKey($id)->update(['sort_order' => $index + 1]);
+        }
+
+        return redirect()->route('admin.forums.categories')->with('status', __('Category order saved.'));
+    }
+
     public function tags(): View
     {
-        $tags = Tag::query()->orderBy('name')->paginate(40);
+        $tags = Tag::query()->withCount('threads')->orderBy('name')->paginate(40);
 
         return view('admin.forums.tags', compact('tags'));
     }
@@ -55,5 +93,24 @@ class ForumSetupController extends Controller
         ]);
 
         return redirect()->route('admin.forums.tags')->with('status', __('Tag created.'));
+    }
+
+    public function updateTag(Request $request, Tag $tag): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:80'],
+        ]);
+
+        $tag->update(['name' => $data['name']]);
+
+        return redirect()->route('admin.forums.tags')->with('status', __('Tag updated.'));
+    }
+
+    public function destroyTag(Tag $tag): RedirectResponse
+    {
+        $tag->threads()->detach();
+        $tag->delete();
+
+        return redirect()->route('admin.forums.tags')->with('status', __('Tag deleted.'));
     }
 }

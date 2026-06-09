@@ -59,13 +59,33 @@
             <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">{{ $lesson->title }}</h1>
 
             @if($playable)
-                <div class="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/50">
-                    @if($playable->kind === 'embed')
-                        {!! $playable->embedHtml !!}
-                    @else
-                        <video src="{{ $playable->signedUrl }}" controls class="w-full" playsinline></video>
+                @if($recordProgress && $playerKind)
+                    <div class="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/50"
+                        data-lesson-player
+                        data-player-kind="{{ $playerKind }}"
+                        data-progress-url="{{ route('lessons.progress', $lesson) }}"
+                        data-start-position="{{ (int) $progress->last_position_seconds }}"
+                        data-save-interval="{{ config('lms.watch.progress_save_interval_seconds') }}"
+                        @if($playerKind === 'youtube' && $youtubeVideoId) data-youtube-id="{{ $youtubeVideoId }}" @endif>
+                        @if($playerKind === 'youtube' && $youtubeVideoId)
+                            <div id="lesson-youtube-player" data-youtube-target class="aspect-video w-full"></div>
+                        @elseif($playerKind === 'html5')
+                            <video src="{{ $playable->signedUrl }}" controls class="w-full aspect-video" playsinline></video>
+                        @endif
+                    </div>
+                    @if($progress->last_position_seconds > 0 && ! $progress->quiz_passed)
+                        <p class="mt-2 text-sm text-emerald-400/90">{{ __('Resume from :time', ['time' => gmdate($progress->last_position_seconds >= 3600 ? 'H:i:s' : 'i:s', $progress->last_position_seconds)]) }}</p>
                     @endif
-                </div>
+                    @vite('resources/js/lesson-player.js')
+                @else
+                    <div class="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/50">
+                        @if($playable->kind === 'embed')
+                            {!! $playable->embedHtml !!}
+                        @else
+                            <video src="{{ $playable->signedUrl }}" controls class="w-full" playsinline></video>
+                        @endif
+                    </div>
+                @endif
 
                 @if($playable->externalWatchUrl)
                     <p class="mt-3 text-sm text-zinc-500">

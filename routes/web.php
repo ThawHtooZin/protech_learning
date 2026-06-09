@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseAdminController;
+use App\Http\Controllers\Admin\CourseStructureController;
 use App\Http\Controllers\Admin\ForumSetupController;
 use App\Http\Controllers\Admin\LessonAdminController;
 use App\Http\Controllers\Admin\ModuleAdminController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LessonCommentController;
 use App\Http\Controllers\LessonController;
+use App\Http\Controllers\LessonProgressController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizTakeController;
@@ -46,6 +48,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
 
     Route::middleware('enrolled.course')->group(function () {
         Route::get('lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
+        Route::post('lessons/{lesson}/progress', [LessonProgressController::class, 'update'])->name('lessons.progress');
         Route::post('lessons/{lesson}/comments', [LessonCommentController::class, 'store'])->name('lessons.comments.store');
 
         Route::get('quizzes/{quiz}', [QuizTakeController::class, 'show'])->name('quizzes.show');
@@ -94,6 +97,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('courses/{course}/edit', [CourseAdminController::class, 'edit'])->name('courses.edit');
     Route::put('courses/{course}', [CourseAdminController::class, 'update'])->name('courses.update');
     Route::delete('courses/{course}', [CourseAdminController::class, 'destroy'])->name('courses.destroy');
+    Route::put('courses/{course}/modules/reorder', [CourseStructureController::class, 'reorderModules'])->name('modules.reorder');
+    Route::put('courses/{course}/modules/{module}/lessons/reorder', [CourseStructureController::class, 'reorderLessons'])->name('lessons.reorder');
 
     Route::post('courses/{course}/modules', [ModuleAdminController::class, 'store'])->name('modules.store');
     Route::delete('courses/{course}/modules/{module}', [ModuleAdminController::class, 'destroy'])->name('modules.destroy');
@@ -102,6 +107,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('courses/{course}/modules/{module}/lessons', [LessonAdminController::class, 'store'])->name('lessons.store');
     Route::get('courses/{course}/modules/{module}/lessons/{lesson}/edit', [LessonAdminController::class, 'edit'])->name('lessons.edit');
     Route::put('courses/{course}/modules/{module}/lessons/{lesson}', [LessonAdminController::class, 'update'])->name('lessons.update');
+    Route::delete('courses/{course}/modules/{module}/lessons/{lesson}', [LessonAdminController::class, 'destroy'])->name('lessons.destroy');
 
     Route::get('courses/{course}/modules/{module}/lessons/{lesson}/quiz/create', [QuizAdminController::class, 'createLessonQuiz'])->name('quizzes.lesson.create');
     Route::get('courses/{course}/modules/{module}/lessons/{lesson}/quiz/edit', [QuizAdminController::class, 'editLessonQuiz'])->name('quizzes.lesson.edit');
@@ -110,6 +116,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('courses/{course}/modules/{module}/lessons/{lesson}/quiz', [QuizAdminController::class, 'destroyLessonQuiz'])->name('quizzes.lesson.destroy');
     Route::get('courses/{course}/modules/{module}/quiz/create', [QuizAdminController::class, 'createModuleQuiz'])->name('quizzes.module.create');
     Route::post('courses/{course}/modules/{module}/quiz', [QuizAdminController::class, 'storeModuleQuiz'])->name('quizzes.module.store');
+    Route::get('courses/{course}/modules/{module}/quiz/edit', [QuizAdminController::class, 'editModuleQuiz'])->name('quizzes.module.edit');
+    Route::put('courses/{course}/modules/{module}/quiz', [QuizAdminController::class, 'updateModuleQuiz'])->name('quizzes.module.update');
+    Route::delete('courses/{course}/modules/{module}/quiz', [QuizAdminController::class, 'destroyModuleQuiz'])->name('quizzes.module.destroy');
 
     Route::get('questions', [QuestionBankController::class, 'index'])->name('questions.index');
     Route::get('questions/create', [QuestionBankController::class, 'create'])->name('questions.create');
@@ -120,6 +129,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('forums/categories', [ForumSetupController::class, 'categories'])->name('forums.categories');
     Route::post('forums/categories', [ForumSetupController::class, 'storeCategory'])->name('forums.categories.store');
+    Route::put('forums/categories/reorder', [ForumSetupController::class, 'reorderCategories'])->name('forums.categories.reorder');
+    Route::put('forums/categories/{forumCategory}', [ForumSetupController::class, 'updateCategory'])->name('forums.categories.update');
+    Route::delete('forums/categories/{forumCategory}', [ForumSetupController::class, 'destroyCategory'])->name('forums.categories.destroy');
     Route::get('forums/tags', [ForumSetupController::class, 'tags'])->name('forums.tags');
     Route::post('forums/tags', [ForumSetupController::class, 'storeTag'])->name('forums.tags.store');
+    Route::put('forums/tags/{tag}', [ForumSetupController::class, 'updateTag'])->name('forums.tags.update');
+    Route::delete('forums/tags/{tag}', [ForumSetupController::class, 'destroyTag'])->name('forums.tags.destroy');
 });

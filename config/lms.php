@@ -17,4 +17,8 @@ return [
     'forum' => [
         'max_posts_per_day' => (int) env('LMS_FORUM_MAX_POSTS_PER_DAY', 5),
     ],
+    'watch' => [
+        'completed_percent' => (int) env('LMS_WATCH_COMPLETED_PERCENT', 90),
+        'progress_save_interval_seconds' => (int) env('LMS_PROGRESS_SAVE_INTERVAL', 15),
+    ],
 ];

@@ -17,9 +17,19 @@ class Profile extends Model
         'handle',
         'display_name',
         'bio',
+        'location',
         'avatar_path',
         'social_links',
     ];
+
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar_path);
+    }
 
     protected function casts(): array
     {
