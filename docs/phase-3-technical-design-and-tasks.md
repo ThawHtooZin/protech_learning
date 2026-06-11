@@ -4,7 +4,7 @@
 
 ### Purpose
 
-Today, **quizzes are the main gate** for lesson completion and course progress (`lesson_progress.quiz_passed`). Phase 3 makes quizzes an **optional, secondary** module. Progression and completion will use a **new primary model** (your idea — confirm before coding).
+Quizzes were the main gate for lesson completion (`lesson_progress.quiz_passed`). Phase 3 removes that gate. Enrolled learners can open **any lesson** in a published course. Completion tracking uses **video watch** (`lesson_progress.watched`). Learner quiz UI is **disabled by default** via config; admin quiz tooling stays for a future phase.
 
 ### Source Inputs
 
@@ -15,56 +15,61 @@ Today, **quizzes are the main gate** for lesson completion and course progress (
 
 ## 1. Current vs Target
 
-| | Now (built) | Phase 3 target |
-|---|-------------|----------------|
-| Unlock next lesson | Prior lesson quiz submitted | Prior lesson **primary-complete** (new rule) |
-| Lesson quiz | Required for progress | **Optional** — never blocks path |
-| Lesson without quiz | Blocks course | Can still complete |
-| Quiz UI | Primary on lesson page | **Secondary** |
-| Question bank & admin | Yes | Keep |
-
-### Code coupled to quizzes today
-
-- `LessonAccessService` — `isLessonCompleteForUser()` → `quiz_passed`
-- `QuizGradingService` — sets `quiz_passed` on lesson quiz submit
-- Completion %, outline checkmarks, profile progress, module recap access
-- `lessons/show.blade.php` — quiz-centric copy and layout
-
-**Do not remove** quizzes, attempts, or question bank. Decouple **gating and progress** only.
+| | Before Phase 3 | After Phase 3 (Epic 1) |
+|---|-------------|------------------------|
+| Unlock next lesson | Prior lesson quiz submitted | **Enrollment only** — all lessons open |
+| Lesson complete | `quiz_passed` | `watched` (video progress endpoint) |
+| Lesson without quiz | Blocked forever | Fully accessible |
+| Learner quiz UI | Primary on lesson page | Hidden when `LMS_QUIZZES_LEARNER_ENABLED=false` |
+| Quiz take routes | Active | **404** when learner quizzes disabled |
+| Question bank & admin | Yes | Unchanged |
 
 ---
 
 ## 2. Primary Completion Model
 
-> **Awaiting your decision** before implementation. Replace this section when approved.
+**Approved and implemented in Epic 1:**
 
-- What counts as “lesson done” for unlocking the next lesson: **[TBD — your idea]**
-- Existing fields that may apply: `lesson_progress.watched`, `last_position_seconds` (Phase 2 video progress)
+- **Lesson done** = `lesson_progress.watched = true` (set by `POST /lessons/{lesson}/progress` when watch % ≥ `LMS_WATCH_COMPLETED_PERCENT`).
+- **Course progress %** = watched lessons ÷ total lessons.
+- **No sequential lock** — enrollment is the only learner gate.
+
+Config:
+
+```env
+LMS_QUIZZES_LEARNER_ENABLED=false   # default — learner quiz routes return 404
+```
+
+Set `true` later to re-enable optional learner quizzes without changing gating.
 
 ---
 
-## 3. Epic 1: Decouple Quizzes — **Pending**
+## 3. Epic 1: Decouple Quizzes — **Complete**
 
-| Task | Acceptance Criteria |
-|------|---------------------|
-| 1.1 Primary completion rule documented in PRD + §2 above | User approved |
-| 1.2 `LessonAccessService` — gating uses primary completion, not `quiz_passed` | Sequential unlock works |
-| 1.3 `QuizGradingService` — no longer drives path unlock via `quiz_passed` | Quiz submit optional |
-| 1.4 Completion %, outline, profile, module recap — aligned with primary completion | No quiz-only blockers |
-| 1.5 Lesson page — quiz section secondary; remove “must submit to continue” copy | UI matches optional quizzes |
-| 1.6 Pest feature tests (happy + unhappy paths) | Suite green |
+| Task | Status |
+|------|--------|
+| 1.1 Primary completion rule in PRD + §2 | Done |
+| 1.2 `LessonAccessService` — enrollment-only view; completion via `watched` | Done |
+| 1.3 `QuizGradingService` — `quiz_passed` only when learner quizzes enabled | Done |
+| 1.4 Course outline, profile progress — `watched`-based | Done |
+| 1.5 Lesson/course pages — no locks; quiz UI hidden when disabled | Done |
+| 1.6 Pest feature tests updated | Done |
 | 1.7 Flow doc | `docs/flows/phase-3-epic-1-decouple-quizzes-sequence.md` |
 
-### Phase 3 done when
+### Phase 3 Epic 1 done when
 
-- [ ] Epic 1 complete and user-approved
-- [ ] Learners can progress without submitting quizzes
-- [ ] Quizzes remain takeable when attached
+- [x] Enrolled learners can open any lesson without quiz or order gate
+- [x] Learner quiz routes 404 when `LMS_QUIZZES_LEARNER_ENABLED=false`
+- [x] Admin question bank and quiz CRUD unchanged
+- [x] Test suite green
 
 ---
 
-## 4. AI Workflow
+## 4. Future (not in Epic 1)
 
-1. **Currently Planning: Phase 3, Epic 1** before any code.
-2. Wait for approval of completion model + plan.
-3. On finish: **Completed: Phase 3, Epic 1** — then wait before next phase.
+- Re-enable optional learner quizzes (`LMS_QUIZZES_LEARNER_ENABLED=true`) with practice-only UX
+- Optional sequential mode (if product wants it back as a setting)
+
+---
+
+**Completed: Phase 3, Epic 1**

@@ -19,7 +19,7 @@ class LessonSequenceGatingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_lesson_two_is_forbidden_until_lesson_one_quiz_is_submitted(): void
+    public function test_enrolled_user_can_open_any_lesson_without_quiz_gate(): void
     {
         $user = User::query()->create([
             'name' => 'Student',
@@ -81,31 +81,10 @@ class LessonSequenceGatingTest extends TestCase
         ]);
         $quiz1->questions()->attach($q1->id, ['sort_order' => 0]);
 
-        $q2 = Question::query()->create([
-            'technology' => 'HTML',
-            'topic' => 'Basics',
-            'body' => '3+3?',
-            'type' => 'mcq',
-        ]);
-        $opt2 = QuestionOption::query()->create(['question_id' => $q2->id, 'body' => '6', 'is_correct' => true, 'sort_order' => 0]);
-        QuestionOption::query()->create(['question_id' => $q2->id, 'body' => '7', 'is_correct' => false, 'sort_order' => 1]);
-
-        $quiz2 = Quiz::query()->create([
-            'lesson_id' => $lesson2->id,
-            'module_id' => null,
-            'title' => 'L2 check',
-            'pass_threshold_percent' => 70,
-        ]);
-        $quiz2->questions()->attach($q2->id, ['sort_order' => 0]);
-
         $this->actingAs($user)->get(route('lessons.show', $lesson1))->assertOk();
-        $this->actingAs($user)->get(route('lessons.show', $lesson2))->assertForbidden();
-
-        $this->actingAs($user)->post(route('quizzes.store', $quiz1), [
-            'answers' => [$q1->id => $opt->id],
-        ])->assertRedirect(route('lessons.show', $lesson2));
-
         $this->actingAs($user)->get(route('lessons.show', $lesson2))->assertOk();
+
+        $this->actingAs($user)->get(route('quizzes.show', $quiz1))->assertNotFound();
     }
 
     public function test_lesson_page_requires_course_enrollment(): void

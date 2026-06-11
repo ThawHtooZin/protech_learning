@@ -3,6 +3,7 @@
 @section('title', $lesson->title)
 
 @section('content')
+    @php($quizzesLearnerEnabled = config('lms.quizzes.learner_enabled'))
     <nav class="mb-6 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
         <a href="{{ route('courses.index') }}" class="hover:text-emerald-400">{{ __('Library') }}</a>
         <span class="text-zinc-700">/</span>
@@ -14,40 +15,29 @@
         <aside class="mb-8 lg:mb-0 lg:sticky lg:top-24 lg:self-start">
             <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">{{ __('Series') }}</p>
             <p class="mt-1 text-sm font-medium text-white">{{ $course->title }}</p>
-            {{-- Full outline height (no max-h scroll trap); page height follows the taller column --}}
             <nav class="mt-4 space-y-4 text-sm">
                 @foreach($course->modules as $module)
                     <div>
                         <div class="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-600">
                             <span>{{ $module->title }}</span>
-                            @foreach($module->quizzes as $mq)
-                                <a href="{{ route('quizzes.show', $mq) }}" class="normal-case font-semibold tracking-normal text-amber-500/90 hover:text-amber-400" title="{{ __('Module recap quiz') }}">{{ __('Recap') }}</a>
-                            @endforeach
+                            @if($quizzesLearnerEnabled)
+                                @foreach($module->quizzes as $mq)
+                                    <a href="{{ route('quizzes.show', $mq) }}" class="normal-case font-semibold tracking-normal text-amber-500/90 hover:text-amber-400" title="{{ __('Module recap quiz') }}">{{ __('Recap') }}</a>
+                                @endforeach
+                            @endif
                         </div>
                         <ul class="mt-2 space-y-1 border-l border-zinc-800 pl-3">
                             @foreach($module->lessons as $navLesson)
-                                @php $navOpen = isset($accessibleLessonIds) && $accessibleLessonIds->contains($navLesson->id); @endphp
                                 <li>
-                                    @if($navOpen)
                                     <a href="{{ route('lessons.show', $navLesson) }}"
                                         class="flex items-start gap-2 py-0.5 {{ $navLesson->id === $lesson->id ? 'font-medium text-emerald-400' : 'text-zinc-400 hover:text-white' }}">
-                                    @else
-                                    <span class="flex cursor-not-allowed items-start gap-2 py-0.5 text-zinc-600" title="{{ __('Complete earlier lessons and quizzes first.') }}">
-                                    @endif
                                         @if($completedLessonIds->contains($navLesson->id))
-                                            <span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-emerald-600 bg-emerald-950 text-[10px] text-emerald-400" title="{{ __('Completed') }}">✓</span>
+                                            <span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-emerald-600 bg-emerald-950 text-[10px] text-emerald-400" title="{{ __('Watched') }}">✓</span>
                                         @else
                                             <span class="mt-0.5 inline-flex h-4 w-4 shrink-0 rounded border border-zinc-700"></span>
                                         @endif
                                         <span class="min-w-0 flex-1">{{ $navLesson->title }}</span>
-                                        @if($navLesson->quizzes->isNotEmpty())
-                                            <span class="mt-0.5 shrink-0 text-[10px] font-bold text-amber-500/90" title="{{ __('Has a lesson quiz') }}">Q</span>
-                                        @endif
-                                    @if($navOpen)
                                     </a>
-                                    @else
-                                    </span>
-                                    @endif
                                 </li>
                             @endforeach
                         </ul>
@@ -73,7 +63,7 @@
                             <video src="{{ $playable->signedUrl }}" controls class="w-full aspect-video" playsinline></video>
                         @endif
                     </div>
-                    @if($progress->last_position_seconds > 0 && ! $progress->quiz_passed)
+                    @if($progress->last_position_seconds > 0 && ! $progress->watched)
                         <p class="mt-2 text-sm text-emerald-400/90">{{ __('Resume from :time', ['time' => gmdate($progress->last_position_seconds >= 3600 ? 'H:i:s' : 'i:s', $progress->last_position_seconds)]) }}</p>
                     @endif
                     @vite('resources/js/lesson-player.js')
@@ -90,60 +80,23 @@
                 @if($playable->externalWatchUrl)
                     <p class="mt-3 text-sm text-zinc-500">
                         <a href="{{ $playable->externalWatchUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-emerald-400 hover:underline">{{ __('Open video on YouTube') }}</a>
-                        <span class="text-zinc-600"> — {{ __('Use this if the embedded player asks you to sign in or shows an error (common on localhost or some networks).') }}</span>
                     </p>
                 @endif
             @else
                 <div class="mt-6 flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-zinc-700 bg-zinc-950/80 px-6 py-12 text-center shadow-inner">
-                    <p class="text-sm font-medium text-zinc-200">{{ __('Please complete the previous video’s quiz.') }}</p>
-                    <p class="mt-2 max-w-md text-xs text-zinc-500">{{ __('The lesson unlocks in order after you submit each lesson quiz.') }}</p>
+                    <p class="text-sm font-medium text-zinc-200">{{ __('Video unavailable.') }}</p>
+                    <p class="mt-2 max-w-md text-xs text-zinc-500">{{ __('Check the lesson video settings in admin.') }}</p>
                 </div>
             @endif
 
-            <section class="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5" aria-labelledby="lesson-quizzes-heading">
-                <h2 id="lesson-quizzes-heading" class="text-lg font-semibold text-white">{{ __('Quizzes & checks') }}</h2>
-                <p class="mt-1 text-sm text-zinc-500">{{ __('Each video should have a lesson quiz: submitting it counts as completing the lesson and unlocks the next one (score is shown as X of Y — no pass/fail). Module recaps require a minimum score to unlock the next module.') }}</p>
-
-                <div class="mt-5 space-y-4">
-                    <div class="rounded-lg border border-zinc-700/80 bg-zinc-950/40 p-4">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('This lesson') }}</p>
-                        @if($lessonQuiz)
-                            <p class="mt-2 text-sm font-medium text-white">{{ $lessonQuiz->title }}</p>
-                            <div class="mt-3 flex flex-wrap items-center gap-3">
-                                @if($canTakeLessonQuiz)
-                                    @if($progress->quiz_passed)
-                                        <span class="text-sm text-emerald-400">{{ __('Lesson quiz submitted') }}</span>
-                                    @else
-                                        <a href="{{ route('quizzes.show', $lessonQuiz) }}" class="inline-flex rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500">{{ __('Take lesson quiz') }}</a>
-                                        <span class="text-xs text-zinc-500">{{ __('Submit the quiz when you’re ready — that completes this lesson for progress.') }}</span>
-                                    @endif
-                                @else
-                                    <p class="text-sm text-zinc-500">{{ __('Lesson quiz unlocks when you reach this step in order.') }}</p>
-                                @endif
-                            </div>
-                        @else
-                            <p class="mt-2 text-sm text-amber-200/90">{{ __('Add a lesson quiz in Admin for this lesson — learners need a quiz on each video to advance.') }}</p>
-                        @endif
-                    </div>
-
-                    @if($moduleQuiz)
-                        <div class="rounded-lg border border-zinc-700/80 bg-zinc-950/40 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('This module') }}</p>
-                            <p class="mt-2 text-sm font-medium text-white">{{ $moduleQuiz->title }}</p>
-                            <p class="mt-1 text-xs text-zinc-500">{{ __('Covers all lessons in “:module”.', ['module' => $lesson->module->title]) }}</p>
-                            <div class="mt-3 flex flex-wrap items-center gap-3">
-                                @if($moduleQuizPassed)
-                                    <span class="text-sm text-emerald-400">{{ __('Module quiz passed') }}</span>
-                                @elseif($canTakeModuleQuiz)
-                                    <a href="{{ route('quizzes.show', $moduleQuiz) }}" class="inline-flex rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">{{ __('Take module recap') }}</a>
-                                @else
-                                    <span class="text-sm text-zinc-500">{{ __('Complete every lesson in this module (and pass any lesson quizzes) to unlock.') }}</span>
-                                @endif
-                            </div>
-                        </div>
+            @if($quizzesLearnerEnabled)
+                <section class="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5" aria-labelledby="lesson-quizzes-heading">
+                    <h2 id="lesson-quizzes-heading" class="text-lg font-semibold text-white">{{ __('Optional quiz') }}</h2>
+                    @if($lessonQuiz)
+                        <a href="{{ route('quizzes.show', $lessonQuiz) }}" class="mt-3 inline-flex rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500">{{ __('Take quiz') }}</a>
                     @endif
-                </div>
-            </section>
+                </section>
+            @endif
 
             @if($docHtml)
                 <article id="lesson-docs" class="lesson-doc prose prose-invert mt-8 max-w-none prose-pre:bg-zinc-900">
@@ -173,18 +126,4 @@
             </section>
         </div>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.hljs) {
-                window.hljs.highlightAll();
-            }
-        });
-    </script>
-    @if(!empty($lessonDebugStatus))
-        <script>
-            console.log('[lesson status]', @json($lessonDebugStatus));
-        </script>
-    @endif
 @endsection

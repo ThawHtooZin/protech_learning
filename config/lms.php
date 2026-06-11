@@ -21,4 +21,11 @@ return [
         'completed_percent' => (int) env('LMS_WATCH_COMPLETED_PERCENT', 90),
         'progress_save_interval_seconds' => (int) env('LMS_PROGRESS_SAVE_INTERVAL', 15),
     ],
+    /*
+     * Learner-facing quizzes (take quiz routes, lesson page quiz UI).
+     * Admin question bank and quiz builder stay available when false.
+     */
+    'quizzes' => [
+        'learner_enabled' => filter_var(env('LMS_QUIZZES_LEARNER_ENABLED', false), FILTER_VALIDATE_BOOL),
+    ],
 ];

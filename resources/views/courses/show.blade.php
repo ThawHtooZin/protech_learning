@@ -45,12 +45,7 @@
                     <h2 class="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-500">{{ $module->title }}</h2>
                     <div class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
                         @foreach($module->lessons as $lesson)
-                            @php $canOpen = isset($accessibleLessonIds) && $accessibleLessonIds->contains($lesson->id); @endphp
-                            @if($canOpen)
                             <a href="{{ route('lessons.show', $lesson) }}" class="flex items-center gap-4 border-b border-zinc-800/80 px-4 py-4 last:border-0 hover:bg-zinc-800/40 sm:px-5">
-                            @else
-                            <div class="flex items-center gap-4 border-b border-zinc-800/80 px-4 py-4 last:border-0 opacity-50 sm:px-5" title="{{ __('Complete previous lessons and quizzes in order to unlock.') }}">
-                            @endif
                                 @if(isset($completedLessonIds) && $completedLessonIds->contains($lesson->id))
                                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-700/60 bg-emerald-950/50 text-emerald-400" title="{{ __('Completed') }}">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -66,21 +61,13 @@
                                         <p class="text-xs text-zinc-500">{{ (int) ceil($lesson->duration_seconds / 60) }} {{ __('min') }}</p>
                                     @endif
                                 </div>
-                                @if($canOpen)
                                 <svg class="h-5 w-5 shrink-0 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                @else
-                                <span class="shrink-0 text-xs font-semibold uppercase text-zinc-600">{{ __('Locked') }}</span>
-                                @endif
-                            @if($canOpen)
                             </a>
-                            @else
-                            </div>
-                            @endif
                         @endforeach
                         @php
                             $modQuiz = $module->quizzes->first(fn ($q) => $q->lesson_id === null);
                         @endphp
-                        @if($modQuiz)
+                        @if($modQuiz && config('lms.quizzes.learner_enabled'))
                             <a href="{{ route('quizzes.show', $modQuiz) }}" class="flex items-center gap-4 border-t border-amber-900/40 bg-amber-950/20 px-4 py-4 hover:bg-amber-950/35 sm:px-5">
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-700/50 bg-amber-950 text-amber-400">
                                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

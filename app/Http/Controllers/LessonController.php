@@ -37,7 +37,7 @@ class LessonController extends Controller
         }
 
         if (! $this->lessonAccess->canViewLesson($user, $lesson)) {
-            abort(403, __('Complete earlier lessons and quizzes in order to open this one.'));
+            abort(403, __('Enroll in this course to access lessons.'));
         }
 
         $this->activity->lessonInstant($user, 'lesson_opened', $course, $lesson, [

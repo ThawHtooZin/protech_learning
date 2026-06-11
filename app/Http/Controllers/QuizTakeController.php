@@ -23,6 +23,10 @@ class QuizTakeController extends Controller
 
     public function show(Request $request, Quiz $quiz): View
     {
+        if (! config('lms.quizzes.learner_enabled')) {
+            abort(404);
+        }
+
         $user = $request->user();
         $quiz->load(['questions.options', 'lesson.module.course', 'module.course']);
 
@@ -55,6 +59,10 @@ class QuizTakeController extends Controller
 
     public function store(Request $request, Quiz $quiz): RedirectResponse
     {
+        if (! config('lms.quizzes.learner_enabled')) {
+            abort(404);
+        }
+
         $user = $request->user();
         $quiz->load(['questions', 'lesson.module.course', 'module.course']);
 
@@ -141,6 +149,10 @@ class QuizTakeController extends Controller
 
     public function result(Request $request, Quiz $quiz, QuizAttempt $attempt): View
     {
+        if (! config('lms.quizzes.learner_enabled')) {
+            abort(404);
+        }
+
         $user = $request->user();
         abort_unless($attempt->quiz_id === $quiz->id && $attempt->user_id === $user->id, 404);
 

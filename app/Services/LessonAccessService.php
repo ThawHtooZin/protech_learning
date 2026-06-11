@@ -12,13 +12,18 @@ use Illuminate\Support\Collection;
 
 class LessonAccessService
 {
+    public function learnerQuizzesEnabled(): bool
+    {
+        return (bool) config('lms.quizzes.learner_enabled', false);
+    }
+
     public function userIsEnrolled(User $user, Course $course): bool
     {
         return $course->enrollments()->where('user_id', $user->id)->exists();
     }
 
     /**
-     * User may open the lesson page (published course). Learners need enrollment + prior steps; admins may open any lesson.
+     * Enrolled learners (and admins) may open any lesson in a published course — no quiz or order gate.
      */
     public function canViewLesson(User $user, Lesson $lesson): bool
     {
@@ -31,19 +36,13 @@ class LessonAccessService
             return true;
         }
 
-        if (! $this->userIsEnrolled($user, $course)) {
-            return false;
-        }
-
-        return $this->priorLessonsStepComplete($user, $lesson);
+        return $this->userIsEnrolled($user, $course);
     }
 
     /**
-     * Lesson IDs the user may open (sequential: complete prior steps first; no skipping).
-     *
-     * @return \Illuminate\Support\Collection<int, int>
+     * @return Collection<int, int>
      */
-    public function accessibleLessonIds(User $user, Course $course): \Illuminate\Support\Collection
+    public function accessibleLessonIds(User $user, Course $course): Collection
     {
         if (! $course->is_published) {
             return collect();
@@ -57,87 +56,23 @@ class LessonAccessService
             return collect();
         }
 
-        $ids = collect();
-        foreach ($course->orderedLessons() as $lesson) {
-            if ($this->priorLessonsStepComplete($user, $lesson)) {
-                $ids->push($lesson->id);
-            }
-        }
-
-        return $ids;
+        return $course->orderedLessons()->pluck('id');
     }
 
-    /**
-     * Course order: modules by sort_order, then lessons by sort_order (see Course::orderedLessons()).
-     * First lesson in that order may always be opened (enrolled). Each later lesson requires every
-     * earlier lesson’s lesson quiz submitted — recorded in lesson_progress.quiz_passed (no module recap gate).
-     */
-    private function priorLessonsStepComplete(User $user, Lesson $lesson): bool
-    {
-        $course = $lesson->course;
-        if (! $course) {
-            return false;
-        }
-
-        $ordered = $course->orderedLessons();
-        $index = $ordered->search(fn (Lesson $l) => $l->id === $lesson->id);
-        if ($index === false) {
-            return false;
-        }
-
-        for ($j = 0; $j < $index; $j++) {
-            if (! $this->isLessonCompleteForUser($user, $ordered[$j])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Progress (quizzes, outline): enrolled learners follow order; admins may record progress on any published lesson.
-     */
     public function canRecordProgressForLesson(User $user, Lesson $lesson): bool
     {
-        $course = $lesson->course;
-        if (! $course || ! $course->is_published) {
-            return false;
-        }
-
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        if (! $this->userIsEnrolled($user, $course)) {
-            return false;
-        }
-
-        $ordered = $course->orderedLessons();
-        $index = $ordered->search(fn (Lesson $l) => $l->id === $lesson->id);
-        if ($index === false) {
-            return false;
-        }
-
-        for ($j = 0; $j < $index; $j++) {
-            /** @var Lesson $prior */
-            $prior = $ordered[$j];
-            if (! $this->isLessonCompleteForUser($user, $prior)) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->canViewLesson($user, $lesson);
     }
 
-    /**
-     * May start/submit this lesson’s quiz (enrolled and prior steps complete — same as progress).
-     */
     public function canTakeLessonQuiz(User $user, Lesson $lesson): bool
     {
-        return $this->canRecordProgressForLesson($user, $lesson);
+        if (! $this->learnerQuizzesEnabled()) {
+            return false;
+        }
+
+        return $this->canViewLesson($user, $lesson);
     }
 
-    /** Next lesson in course order, or null if this is the last lesson. */
     public function nextLessonAfter(Lesson $lesson): ?Lesson
     {
         $course = $lesson->course;
@@ -154,16 +89,13 @@ class LessonAccessService
         return $ordered->get($idx + 1);
     }
 
-    /**
-     * Per-lesson progress for gating and completion %: lesson quiz submitted (lesson_progress.quiz_passed).
-     */
     public function isStepCompleteForUser(User $user, Lesson $lesson): bool
     {
         return $this->isLessonCompleteForUser($user, $lesson);
     }
 
     /**
-     * “Completed” = row in lesson_progress with quiz_passed for this lesson’s lesson quiz (the check record).
+     * Lesson complete = video watched (threshold set via progress endpoint), not quiz.
      */
     public function isLessonCompleteForUser(User $user, Lesson $lesson): bool
     {
@@ -172,61 +104,37 @@ class LessonAccessService
             ->where('lesson_id', $lesson->id)
             ->first();
 
-        if (! $progress) {
-            return false;
-        }
-
-        $lessonQuiz = $lesson->quizzes()->where('lesson_id', $lesson->id)->first();
-
-        if (! $lessonQuiz) {
-            return false;
-        }
-
-        return (bool) $progress->quiz_passed;
+        return $progress && (bool) $progress->watched;
     }
 
     /**
-     * Outline checkmarks: lesson quiz submitted (lessons without a quiz never show complete).
-     *
      * @return Collection<int, int>
      */
     public function completedLessonIdsForCourse(User $user, Course $course): Collection
     {
-        $course->loadMissing('modules.lessons.quizzes');
-
-        $lessons = $course->modules->flatMap(fn ($m) => $m->lessons);
-        $lessonIds = $lessons->pluck('id');
+        $lessonIds = $course->orderedLessons()->pluck('id');
         if ($lessonIds->isEmpty()) {
             return collect();
         }
 
-        $progressByLesson = $user->lessonProgress()
+        return $user->lessonProgress()
             ->whereIn('lesson_id', $lessonIds)
-            ->get()
-            ->keyBy('lesson_id');
-
-        return $lessons->filter(function (Lesson $lesson) use ($progressByLesson) {
-            if ($lesson->quizzes->isEmpty()) {
-                return false;
-            }
-            $p = $progressByLesson->get($lesson->id);
-
-            return $p && $p->quiz_passed;
-        })->pluck('id');
+            ->where('watched', true)
+            ->pluck('lesson_id');
     }
 
     public function canTakeModuleQuiz(User $user, Quiz $quiz): bool
     {
+        if (! $this->learnerQuizzesEnabled()) {
+            return false;
+        }
+
         if (! $quiz->module_id || $quiz->lesson_id) {
             return false;
         }
 
-        $module = $quiz->module()->with(['lessons', 'course'])->first();
-        if (! $module) {
-            return false;
-        }
-
-        $course = $module->course;
+        $module = $quiz->module()->with('course')->first();
+        $course = $module?->course;
         if (! $course || ! $course->is_published) {
             return false;
         }
@@ -235,17 +143,7 @@ class LessonAccessService
             return true;
         }
 
-        if (! $this->userIsEnrolled($user, $course)) {
-            return false;
-        }
-
-        foreach ($module->lessons as $lesson) {
-            if (! $this->isLessonCompleteForUser($user, $lesson)) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->userIsEnrolled($user, $course);
     }
 
     public function courseCompletionPercent(User $user, Course $course): int
@@ -255,21 +153,17 @@ class LessonAccessService
             return 0;
         }
 
-        $done = 0;
-        foreach ($lessons as $lesson) {
-            if ($this->isLessonCompleteForUser($user, $lesson)) {
-                $done++;
-            }
-        }
+        $done = $this->completedLessonIdsForCourse($user, $course)->count();
 
         return (int) round(100 * $done / $lessons->count());
     }
 
-    /**
-     * Share of correct answers across all quiz attempts in this course (KD-style: correct / total answered).
-     */
     public function courseAnswerAccuracyPercent(User $user, Course $course): ?float
     {
+        if (! $this->learnerQuizzesEnabled()) {
+            return null;
+        }
+
         $quizIds = $this->quizIdsForCourse($course);
         if ($quizIds === []) {
             return null;

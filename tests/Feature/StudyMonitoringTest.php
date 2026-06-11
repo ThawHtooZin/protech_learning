@@ -6,11 +6,11 @@ use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\LessonActivityLog;
 use App\Models\Module;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\Quiz;
-use App\Models\LessonActivityLog;
 use App\Models\QuizActivityLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,7 +21,7 @@ class StudyMonitoringTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_lesson_open_and_quiz_submit_are_recorded(): void
+    public function test_lesson_open_is_recorded_when_learner_quizzes_disabled(): void
     {
         $user = User::query()->create([
             'name' => 'Student',
@@ -63,7 +63,7 @@ class StudyMonitoringTest extends TestCase
             'body' => '1+1?',
             'type' => 'mcq',
         ]);
-        $optA = QuestionOption::query()->create(['question_id' => $q->id, 'body' => '2', 'is_correct' => true, 'sort_order' => 0]);
+        QuestionOption::query()->create(['question_id' => $q->id, 'body' => '2', 'is_correct' => true, 'sort_order' => 0]);
         QuestionOption::query()->create(['question_id' => $q->id, 'body' => '3', 'is_correct' => false, 'sort_order' => 1]);
 
         $quiz = Quiz::query()->create([
@@ -75,13 +75,9 @@ class StudyMonitoringTest extends TestCase
         $quiz->questions()->attach($q->id, ['sort_order' => 0]);
 
         $this->actingAs($user)->get(route('lessons.show', $lesson))->assertOk();
-        $this->actingAs($user)->get(route('quizzes.show', $quiz))->assertOk();
-        $this->actingAs($user)->post(route('quizzes.store', $quiz), [
-            'answers' => [$q->id => $optA->id],
-        ])->assertRedirect();
+        $this->actingAs($user)->get(route('quizzes.show', $quiz))->assertNotFound();
 
         $this->assertTrue(LessonActivityLog::query()->where('user_id', $user->id)->where('event_type', 'lesson_opened')->exists());
-        $this->assertTrue(QuizActivityLog::query()->where('user_id', $user->id)->where('event_type', 'quiz_started')->exists());
+        $this->assertFalse(QuizActivityLog::query()->where('user_id', $user->id)->exists());
     }
 }
-

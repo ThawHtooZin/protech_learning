@@ -58,13 +58,11 @@ class QuizGradingService
                 'passed' => $passed,
             ]);
 
-            if ($quiz->lesson_id) {
+            if ($quiz->lesson_id && config('lms.quizzes.learner_enabled')) {
                 $progress = LessonProgress::query()->firstOrCreate(
                     ['user_id' => $user->id, 'lesson_id' => $quiz->lesson_id],
                     ['last_position_seconds' => 0]
                 );
-                $progress->started = true;
-                $progress->watched = true;
                 $progress->quiz_passed = true;
                 $progress->last_checkpoint_at = now();
                 $progress->save();

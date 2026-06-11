@@ -15,7 +15,7 @@
 #### Aims & Objectives
 
 - Build a web-based Learning Management System (LMS) for structured, video-first technical courses.
-- Enforce a sequential learning path based on **primary lesson completion** (Phase 3 — see below; was quiz-gated in Phases 1–2).
+- Let enrolled learners access any lesson in a course; track progress via **video watch** (Phase 3 — was quiz-gated in Phases 1–2).
 - Support admin-assigned enrollment and admin approval before learners access the platform.
 - Provide a reusable question bank and **optional** lesson/module quizzes for practice (not required to progress).
 - Enable community discussion through forums and per-lesson comments with @mentions.
@@ -61,15 +61,13 @@
 - Cloudflare R2 / S3-compatible private video via signed URLs.
 - Lesson page: video player, rendered markdown docs, course outline, comments, quiz link.
 
-##### Sequential Learning & Progress
+##### Learning & Progress (Phase 3)
 
-> **Phases 1–2 (current code):** Gating uses `lesson_progress.quiz_passed`. **Phase 3** replaces this — see Phase 3 section.
-
-- Lessons ordered by module `sort_order`, then lesson `sort_order`.
-- First lesson always accessible to enrolled learners.
-- Each later lesson requires prior lessons **primary-complete** (Phase 3 model — TBD in Epic 1).
-- Lessons **without** a quiz must still be completable (Phase 3).
-- Sequential order preserved; only the **completion signal** changes.
+- Lessons ordered by module `sort_order`, then lesson `sort_order` (display order only).
+- **Any lesson** in a published course is open to enrolled learners (no quiz or order gate).
+- Lesson **complete** = `lesson_progress.watched` (video watch threshold via progress endpoint).
+- Course completion % = watched lessons ÷ total lessons.
+- Learner quiz UI disabled by default (`LMS_QUIZZES_LEARNER_ENABLED=false`); admin quiz tools remain.
 
 ##### Assessment (optional module — Phase 3 direction)
 
@@ -190,10 +188,10 @@
 - FR-L4: Admins may open any lesson without gating.
 - FR-L5: Lesson routes require enrollment via `enrolled.course` middleware.
 
-**Phase 3 target:**
+**Phase 3 (shipped Epic 1):**
 
-- FR-L6: Each subsequent lesson requires prior lessons **primary-complete** (model in Phase 3 Epic 1).
-- FR-L7: Lessons without an attached quiz must still be primary-completable.
+- FR-L6: Enrolled learners may open **any** lesson in a published course without prior completion.
+- FR-L7: Lesson completion uses `lesson_progress.watched`; lessons without quizzes are fully completable.
 
 ##### Quizzes (optional module — Phase 3)
 
@@ -254,7 +252,7 @@
 
 - NFR-U1: Learner UI uses dark zinc/emerald theme with clear navigation (Browse, Forum, Dashboard).
 - NFR-U2: Admin UI uses sidebar CMS layout separate from learner shell.
-- NFR-U3: Course outline shows locked/unlocked/completed lesson states.
+- NFR-U3: Course outline shows watched/completed lesson states (no lock state when enrolled).
 - NFR-U4: Error and validation messages are clear and actionable.
 
 ##### Maintainability
@@ -329,11 +327,11 @@ Finish all remaining V1 gaps and platform polish in one pass before new product 
 - Full social platform (feeds, follow, DMs) — profile foundation only
 - Certificates, payments, API
 
-### Phase 3: Decouple Quizzes (Active)
+### Phase 3: Decouple Quizzes (Epic 1 complete)
 
-> **Status:** Planning. One epic: `docs/phase-3-technical-design-and-tasks.md`.
+> **Status:** Epic 1 shipped. See `docs/phase-3-technical-design-and-tasks.md` and `docs/flows/phase-3-epic-1-decouple-quizzes-sequence.md`.
 
-Quizzes become **optional** and **secondary**. A new **primary completion model** (your idea) replaces quiz submit as the gate. Question bank and quiz admin stay.
+Free lesson navigation for enrolled users. Completion via video watch. Learner quizzes off by default; question bank and admin quiz CRUD unchanged.
 
 ### Success Metrics
 
