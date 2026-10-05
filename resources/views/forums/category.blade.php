@@ -11,7 +11,7 @@
     </div>
     <ul class="space-y-2">
         @foreach($threads as $thread)
-            <li class="rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-3">
+            <li class="rounded-md border border-white/5 bg-panel px-4 py-3">
                 <a href="{{ route('forums.thread', [$forumCategory, $thread]) }}" class="font-medium text-white hover:underline">{{ $thread->title }}</a>
                 <p class="text-xs text-zinc-500">{{ $thread->author->profile->display_name ?? $thread->author->name }} · {{ $thread->posts_count }} {{ __('posts') }}</p>
             </li>

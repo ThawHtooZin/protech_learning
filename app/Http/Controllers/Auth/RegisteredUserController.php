@@ -24,15 +24,13 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'handle' => ['required', 'string', 'regex:/^[a-zA-Z0-9_]{2,32}$/', 'unique:profiles,handle'],
             'display_name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'regex:/^[a-zA-Z0-9_]{2,32}$/', 'unique:profiles,handle'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $user = User::query()->create([
-            'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => UserRole::Student,
@@ -40,7 +38,7 @@ class RegisteredUserController extends Controller
 
         Profile::query()->create([
             'user_id' => $user->id,
-            'handle' => $validated['handle'],
+            'handle' => $validated['username'],
             'display_name' => $validated['display_name'],
         ]);
 

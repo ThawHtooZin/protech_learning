@@ -9,9 +9,9 @@ class MentionRenderer
     /**
      * Turn plain text with @handle into safe HTML; known handles become profile links with stable ids for deep links.
      *
-     * @param  string  $sourceType  e.g. forum_post, lesson_comment
+     * @param  string  $sourceType  e.g. forum_post, lesson_comment, team_post
      */
-    public function toHtml(string $text, string $sourceType, int|string $sourceId): string
+    public function toHtml(string $text, string $sourceType, int|string $sourceId, bool $broadcastAll = false): string
     {
         $text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -30,10 +30,14 @@ class MentionRenderer
 
         $html = preg_replace_callback(
             '/@([a-zA-Z0-9_]{2,32})/',
-            function (array $m) use ($sourceType, $sourceId, &$i, $profiles): string {
+            function (array $m) use ($sourceType, $sourceId, &$i, $profiles, $broadcastAll): string {
                 $handle = $m[1];
                 $anchorId = 'mt-'.$sourceType.'-'.$sourceId.'-'.$i;
                 $i++;
+
+                if ($broadcastAll && strcasecmp($handle, 'all') === 0) {
+                    return '<span id="'.e($anchorId).'" class="mention-link font-medium text-emerald-400">@all</span>';
+                }
 
                 $profile = $profiles->get($handle);
                 if (! $profile) {

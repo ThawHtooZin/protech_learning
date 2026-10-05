@@ -23,7 +23,7 @@
     <ul class="space-y-2">
         @forelse($notifications as $n)
             @php $data = is_array($n->data) ? $n->data : []; @endphp
-            <li class="rounded-xl border px-4 py-4 transition {{ $n->read_at ? 'border-zinc-800/80 bg-zinc-900/30' : 'border-emerald-800/40 bg-emerald-950/20 ring-1 ring-emerald-900/30' }}">
+            <li class="rounded-xl border px-4 py-4 transition {{ $n->read_at ? 'border-white/5 bg-panel' : 'border-white/10 bg-rail' }}">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                         @if(!$n->read_at)
@@ -46,7 +46,7 @@
                 </div>
             </li>
         @empty
-            <li class="rounded-xl border border-zinc-800 bg-zinc-900/40 px-6 py-12 text-center text-zinc-500">{{ __('No notifications yet.') }}</li>
+            <li class="rounded-xl border border-white/5 bg-panel px-6 py-12 text-center text-zinc-500">{{ __('No notifications yet.') }}</li>
         @endforelse
     </ul>
     <div class="mt-8">{{ $notifications->links() }}</div>

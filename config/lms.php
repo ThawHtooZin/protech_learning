@@ -21,11 +21,19 @@ return [
         'completed_percent' => (int) env('LMS_WATCH_COMPLETED_PERCENT', 90),
         'progress_save_interval_seconds' => (int) env('LMS_PROGRESS_SAVE_INTERVAL', 15),
     ],
-    /*
-     * Learner-facing quizzes (take quiz routes, lesson page quiz UI).
-     * Admin question bank and quiz builder stay available when false.
-     */
-    'quizzes' => [
-        'learner_enabled' => filter_var(env('LMS_QUIZZES_LEARNER_ENABLED', false), FILTER_VALIDATE_BOOL),
+
+    'assignments' => [
+        'disk' => env('LMS_ASSIGNMENT_DISK', 'local'),
+        'max_files' => 5,
+        'max_file_kb' => 20 * 1024,
+        // Any file type allowed (py, html, css, js, zip, etc.). Size/count only.
+    ],
+
+    'locales' => [
+        'available' => ['en', 'my'],
+        'labels' => [
+            'en' => 'English',
+            'my' => 'မြန်မာ',
+        ],
     ],
 ];

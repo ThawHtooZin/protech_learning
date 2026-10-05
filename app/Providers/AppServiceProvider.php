@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('layouts.learn', function ($view): void {
+        View::composer(['layouts.learn', 'layouts.team', 'partials.learn-header'], function ($view): void {
             if (auth()->check()) {
                 $view->with(
                     'unreadNotificationCount',

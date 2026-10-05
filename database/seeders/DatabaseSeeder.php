@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
      * Safe to run multiple times: skips if demo admin already exists.
      * For a clean reset: php artisan migrate:fresh --seed
      *
-     * Courses and quizzes are not seeded — add content via Admin or your own seeders.
+     * Courses are not seeded — add content via Admin or your own seeders.
      */
     public function run(): void
     {
@@ -27,7 +27,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $admin = User::query()->create([
-            'name' => 'Admin User',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
             'role' => UserRole::Admin,

@@ -5,16 +5,20 @@
 
 @section('content')
     <div class="grid gap-6 lg:grid-cols-3">
-        <section class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 lg:col-span-1">
+        <section class="rounded-xl border border-white/5 bg-panel p-5 lg:col-span-1">
             <h2 class="text-sm font-semibold text-white">{{ __('Account') }}</h2>
             <dl class="mt-4 space-y-3 text-sm">
                 <div>
-                    <dt class="text-xs uppercase tracking-wider text-zinc-500">{{ __('Name') }}</dt>
-                    <dd class="text-zinc-200">{{ $user->name }}</dd>
+                    <dt class="text-xs uppercase tracking-wider text-zinc-500">{{ __('Display name') }}</dt>
+                    <dd class="text-zinc-200">{{ $user->profile?->display_name ?? $user->email }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs uppercase tracking-wider text-zinc-500">{{ __('Email') }}</dt>
                     <dd class="text-zinc-200">{{ $user->email }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs uppercase tracking-wider text-zinc-500">{{ __('Teams') }}</dt>
+                    <dd class="text-zinc-200">{{ $user->teams->pluck('name')->join(', ') ?: __('None') }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs uppercase tracking-wider text-zinc-500">{{ __('Status') }}</dt>
@@ -76,7 +80,7 @@
             </form>
         </section>
 
-        <section class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 lg:col-span-2">
+        <section class="rounded-xl border border-white/5 bg-panel p-5 lg:col-span-2">
             <h2 class="text-sm font-semibold text-white">{{ __('Role') }}</h2>
             <form method="POST" action="{{ route('admin.users.role', $user) }}" class="mt-4 flex flex-wrap items-end gap-3">
                 @csrf

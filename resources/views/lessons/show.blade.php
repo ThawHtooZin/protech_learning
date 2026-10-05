@@ -3,7 +3,6 @@
 @section('title', $lesson->title)
 
 @section('content')
-    @php($quizzesLearnerEnabled = config('lms.quizzes.learner_enabled'))
     <nav class="mb-6 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
         <a href="{{ route('courses.index') }}" class="hover:text-emerald-400">{{ __('Library') }}</a>
         <span class="text-zinc-700">/</span>
@@ -18,13 +17,8 @@
             <nav class="mt-4 space-y-4 text-sm">
                 @foreach($course->modules as $module)
                     <div>
-                        <div class="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-600">
+                        <div class="text-xs font-medium uppercase tracking-wide text-zinc-600">
                             <span>{{ $module->title }}</span>
-                            @if($quizzesLearnerEnabled)
-                                @foreach($module->quizzes as $mq)
-                                    <a href="{{ route('quizzes.show', $mq) }}" class="normal-case font-semibold tracking-normal text-amber-500/90 hover:text-amber-400" title="{{ __('Module recap quiz') }}">{{ __('Recap') }}</a>
-                                @endforeach
-                            @endif
                         </div>
                         <ul class="mt-2 space-y-1 border-l border-zinc-800 pl-3">
                             @foreach($module->lessons as $navLesson)
@@ -87,15 +81,6 @@
                     <p class="text-sm font-medium text-zinc-200">{{ __('Video unavailable.') }}</p>
                     <p class="mt-2 max-w-md text-xs text-zinc-500">{{ __('Check the lesson video settings in admin.') }}</p>
                 </div>
-            @endif
-
-            @if($quizzesLearnerEnabled)
-                <section class="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5" aria-labelledby="lesson-quizzes-heading">
-                    <h2 id="lesson-quizzes-heading" class="text-lg font-semibold text-white">{{ __('Optional quiz') }}</h2>
-                    @if($lessonQuiz)
-                        <a href="{{ route('quizzes.show', $lessonQuiz) }}" class="mt-3 inline-flex rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500">{{ __('Take quiz') }}</a>
-                    @endif
-                </section>
             @endif
 
             @if($docHtml)

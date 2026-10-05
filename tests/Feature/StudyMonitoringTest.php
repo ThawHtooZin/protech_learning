@@ -8,10 +8,6 @@ use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonActivityLog;
 use App\Models\Module;
-use App\Models\Question;
-use App\Models\QuestionOption;
-use App\Models\Quiz;
-use App\Models\QuizActivityLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -21,10 +17,9 @@ class StudyMonitoringTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_lesson_open_is_recorded_when_learner_quizzes_disabled(): void
+    public function test_lesson_open_is_recorded(): void
     {
         $user = User::query()->create([
-            'name' => 'Student',
             'email' => 'student@test.local',
             'password' => Hash::make('password'),
             'role' => UserRole::Student,
@@ -57,27 +52,8 @@ class StudyMonitoringTest extends TestCase
             'course_id' => $course->id,
         ]);
 
-        $q = Question::query()->create([
-            'technology' => 'HTML',
-            'topic' => 'Basics',
-            'body' => '1+1?',
-            'type' => 'mcq',
-        ]);
-        QuestionOption::query()->create(['question_id' => $q->id, 'body' => '2', 'is_correct' => true, 'sort_order' => 0]);
-        QuestionOption::query()->create(['question_id' => $q->id, 'body' => '3', 'is_correct' => false, 'sort_order' => 1]);
-
-        $quiz = Quiz::query()->create([
-            'lesson_id' => $lesson->id,
-            'module_id' => null,
-            'title' => 'Check',
-            'pass_threshold_percent' => 70,
-        ]);
-        $quiz->questions()->attach($q->id, ['sort_order' => 0]);
-
         $this->actingAs($user)->get(route('lessons.show', $lesson))->assertOk();
-        $this->actingAs($user)->get(route('quizzes.show', $quiz))->assertNotFound();
 
         $this->assertTrue(LessonActivityLog::query()->where('user_id', $user->id)->where('event_type', 'lesson_opened')->exists());
-        $this->assertFalse(QuizActivityLog::query()->where('user_id', $user->id)->exists());
     }
 }

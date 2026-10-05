@@ -52,14 +52,4 @@ class Lesson extends Model
     {
         return $this->hasMany(LessonComment::class);
     }
-
-    public function quizzes(): HasMany
-    {
-        return $this->hasMany(Quiz::class);
-    }
-
-    public function videoQuiz(): ?Quiz
-    {
-        return $this->quizzes()->where('lesson_id', $this->id)->first();
-    }
 }

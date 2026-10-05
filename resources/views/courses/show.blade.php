@@ -15,14 +15,10 @@
                     <span class="inline-flex items-center gap-2 rounded-full bg-emerald-950/80 px-4 py-1.5 text-sm text-emerald-300 ring-1 ring-emerald-800/50">
                         <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
                         {{ __('Enrolled') }} · {{ $completion }}% {{ __('complete') }}
-                        @if($completion === 100 && $accuracyPercent !== null)
-                            <span class="text-zinc-400">·</span>
-                            <span title="{{ __('Correct answers / total answers across all quizzes in this course') }}">{{ __('Accuracy') }}: {{ $accuracyPercent }}%</span>
-                        @endif
                     </span>
                 @elseif(!empty($adminFullAccess))
                     <span class="inline-flex items-center gap-2 rounded-full bg-zinc-800/80 px-4 py-1.5 text-sm text-zinc-200 ring-1 ring-zinc-600/50">
-                        {{ __('Staff') }} · {{ __('full access to lessons and quizzes') }}
+                        {{ __('Staff') }} · {{ __('full access to lessons') }}
                     </span>
                 @else
                     <p class="text-zinc-500">
@@ -64,20 +60,6 @@
                                 <svg class="h-5 w-5 shrink-0 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>
                         @endforeach
-                        @php
-                            $modQuiz = $module->quizzes->first(fn ($q) => $q->lesson_id === null);
-                        @endphp
-                        @if($modQuiz && config('lms.quizzes.learner_enabled'))
-                            <a href="{{ route('quizzes.show', $modQuiz) }}" class="flex items-center gap-4 border-t border-amber-900/40 bg-amber-950/20 px-4 py-4 hover:bg-amber-950/35 sm:px-5">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-700/50 bg-amber-950 text-amber-400">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-medium text-amber-200">{{ __('Module quiz') }}</p>
-                                    <p class="text-xs text-amber-500/80">{{ $modQuiz->title }}</p>
-                                </div>
-                            </a>
-                        @endif
                     </div>
                 </section>
             @endforeach

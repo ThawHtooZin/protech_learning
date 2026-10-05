@@ -5,7 +5,7 @@
 
 @section('content')
     @include('admin.monitoring._tabs')
-    <form method="GET" action="{{ route('admin.monitoring.index') }}" class="mb-6 grid gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 md:grid-cols-5">
+    <form method="GET" action="{{ route('admin.monitoring.index') }}" class="mb-6 grid gap-3 rounded-xl border border-white/5 bg-panel p-4 md:grid-cols-5">
         <div>
             <label class="block text-xs uppercase tracking-wider text-zinc-500">{{ __('User') }}</label>
             <select name="user_id" class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
@@ -49,7 +49,7 @@
         </div>
     </form>
 
-    <div class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
+    <div class="overflow-hidden rounded-xl border border-white/5 bg-panel">
         <table class="w-full text-left text-sm">
             <thead class="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
                 <tr>
@@ -83,9 +83,6 @@
                             @endif
                             @if($e->lesson)
                                 <div class="text-xs text-zinc-500">{{ __('Lesson:') }} {{ $e->lesson->title }}</div>
-                            @endif
-                            @if($e->quiz)
-                                <div class="text-xs text-zinc-500">{{ __('Quiz:') }} {{ $e->quiz->title }}</div>
                             @endif
                             @if(is_array($e->meta) && isset($e->meta['forum_category_name']))
                                 <div class="text-xs text-zinc-500">{{ __('Forum:') }} {{ $e->meta['forum_category_name'] }}</div>

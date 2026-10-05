@@ -53,9 +53,7 @@ class LessonAdminController extends Controller
     {
         abort_unless($module->course_id === $course->id && $lesson->module_id === $module->id, 404);
 
-        $lessonQuiz = $lesson->quizzes()->withCount(['questions', 'attempts'])->first();
-
-        return view('admin.lessons.edit', compact('course', 'module', 'lesson', 'lessonQuiz'));
+        return view('admin.lessons.edit', compact('course', 'module', 'lesson'));
     }
 
     public function update(Request $request, Course $course, Module $module, Lesson $lesson): RedirectResponse

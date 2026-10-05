@@ -9,7 +9,7 @@
     </div>
 
     @if($courses->isEmpty())
-        <div class="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/30 px-8 py-16 text-center">
+        <div class="rounded-2xl border border-dashed border-white/10 bg-panel px-8 py-16 text-center">
             <p class="text-zinc-400">{{ __('You are not enrolled in any course yet.') }}</p>
             <a href="{{ route('courses.index') }}" class="mt-4 inline-flex rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">{{ __('Browse the library') }}</a>
         </div>
@@ -17,7 +17,7 @@
         <div class="grid gap-6 lg:grid-cols-2">
             @foreach($courses as $course)
                 @php $pct = $progress[$course->id] ?? 0; @endphp
-                <div class="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+                <div class="rounded-2xl border border-white/5 bg-panel p-6">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h2 class="text-lg font-semibold text-white">

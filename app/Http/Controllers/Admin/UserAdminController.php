@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Profile;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -16,18 +19,69 @@ class UserAdminController extends Controller
 {
     public function index(Request $request): View
     {
-        $users = User::query()
-            ->with('profile')
-            ->orderByDesc('created_at')
-            ->paginate(30)
-            ->withQueryString();
+        $activeTab = $request->query('tab') === 'users' ? 'users' : 'teams';
+        $teamCount = Team::query()->count();
+        $userCount = User::query()->count();
+        $teams = collect();
+        $users = null;
 
-        return view('admin.users.index', compact('users'));
+        if ($activeTab === 'teams') {
+            $teams = Team::query()
+                ->withCount('users')
+                ->orderBy('name')
+                ->get();
+        }
+
+        if ($activeTab === 'users') {
+            $users = User::query()
+                ->with(['profile', 'teams'])
+                ->orderByDesc('created_at')
+                ->paginate(30)
+                ->withQueryString();
+        }
+
+        return view('admin.users.index', compact(
+            'activeTab',
+            'teams',
+            'teamCount',
+            'userCount',
+            'users',
+        ));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'display_name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'regex:/^[a-zA-Z0-9_]{2,32}$/', 'unique:profiles,handle'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'role' => ['required', 'string', 'in:'.implode(',', array_map(fn (UserRole $role) => $role->value, UserRole::cases()))],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        DB::transaction(function () use ($validated, $request) {
+            $user = new User([
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => UserRole::from($validated['role']),
+            ]);
+            $user->forceFill([
+                'approved_at' => now(),
+                'approved_by_user_id' => $request->user()->id,
+            ])->save();
+
+            $user->profile()->create([
+                'handle' => $validated['username'],
+                'display_name' => $validated['display_name'],
+            ]);
+        });
+
+        return redirect()->route('admin.users.index', ['tab' => 'users'])->with('status', __('Account created.'));
     }
 
     public function show(User $user): View
     {
-        $user->load('profile', 'enrollments');
+        $user->load('profile', 'enrollments', 'teams');
         $courses = Course::query()->orderBy('title')->get();
         $assignedCourseIds = $user->enrollments()->pluck('course_id')->all();
 

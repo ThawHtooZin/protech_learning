@@ -6,13 +6,13 @@
 
 @section('content')
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <p class="text-sm text-zinc-400">{{ __('Create, edit, or remove courses. Use “Edit” to add modules, lessons, and quizzes.') }}</p>
+        <p class="text-sm text-zinc-400">{{ __('Create, edit, or remove courses. Use “Edit” to add modules and lessons.') }}</p>
         <a href="{{ route('admin.courses.create') }}" class="shrink-0 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500">{{ __('New course') }}</a>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
+    <div class="overflow-hidden rounded-xl border border-white/5 bg-panel">
         <table class="min-w-full divide-y divide-zinc-800 text-left text-sm">
-            <thead class="bg-zinc-900/80 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            <thead class="bg-rail text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 <tr>
                     <th class="px-4 py-3">{{ __('Title') }}</th>
                     <th class="hidden px-4 py-3 sm:table-cell">{{ __('Status') }}</th>
@@ -37,7 +37,7 @@
                         <td class="px-4 py-3 text-right">
                             <div class="flex flex-wrap justify-end gap-2">
                                 <a href="{{ route('admin.courses.edit', $c) }}" class="rounded-md border border-zinc-600 px-3 py-1.5 text-xs text-white hover:bg-zinc-800">{{ __('Edit') }}</a>
-                                <form method="POST" action="{{ route('admin.courses.destroy', $c) }}" class="inline" onsubmit="return confirm({{ json_encode(__('Delete this course and all its modules, lessons, quizzes, and enrollments? This cannot be undone.')) }})">
+                                <form method="POST" action="{{ route('admin.courses.destroy', $c) }}" class="inline" onsubmit="return confirm({{ json_encode(__('Delete this course and all its modules, lessons, and enrollments? This cannot be undone.')) }})">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="rounded-md border border-red-900/60 px-3 py-1.5 text-xs text-red-400 hover:bg-red-950/40">{{ __('Delete') }}</button>

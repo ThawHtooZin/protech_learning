@@ -289,9 +289,22 @@
 
 > **Superseded.** Built in Phases 1–2 with quiz-based gating. See **Phase 3: Learning Path Redesign** below.
 
-#### Phase 4: Community
+#### Phase 4: Community (historical V1 plan)
 
 - Forums, lesson comments, mentions, notifications, rate limits.
+
+### Phase 4: Teams & Assignments
+
+> **Status:** Epic 1 and Epic 2 shipped. See [`docs/srs-team-assignments.md`](./srs-team-assignments.md) and [`docs/srs-team-general-posts.md`](./srs-team-general-posts.md).
+
+| Epic | Feature |
+|------|---------|
+| 1 | Team file assignments (MS Teams–style upload + instructor review) — **shipped** |
+| 2 | Team General posts + restored learner navbar — **shipped** |
+
+**Epic 1 summary:** Assignments live on a **team**. Instructors/admins create them; students upload files/zips; instructors review and return with feedback.
+
+**Epic 2 summary:** Team pages use the full learner navbar. Instructors/admins post on General; students reply. `@handle` and `@all` notify team members.
 
 #### Phase 5: Administration & Monitoring
 

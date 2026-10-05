@@ -9,7 +9,7 @@
     $indent = min($depth, $maxDepth) * 16;
 @endphp
 
-<article class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4" style="margin-left: {{ $indent }}px">
+<article class="rounded-lg border border-white/5 bg-panel p-4" style="margin-left: {{ $indent }}px">
     <p class="text-xs text-zinc-500">
         <a href="{{ route('profiles.show', $post->user->profile) }}" class="text-emerald-400 hover:underline">{{ $post->user->profile->display_name ?? $post->user->name }}</a>
         · {{ $post->created_at->diffForHumans() }}

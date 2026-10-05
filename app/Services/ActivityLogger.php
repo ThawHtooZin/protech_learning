@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Assignment;
+use App\Models\AssignmentActivityLog;
 use App\Models\Course;
 use App\Models\CourseActivityLog;
 use App\Models\ForumActivityLog;
@@ -10,9 +12,7 @@ use App\Models\ForumPost;
 use App\Models\ForumThread;
 use App\Models\Lesson;
 use App\Models\LessonActivityLog;
-use App\Models\Quiz;
-use App\Models\QuizActivityLog;
-use App\Models\QuizAttempt;
+use App\Models\Team;
 use App\Models\User;
 
 class ActivityLogger
@@ -30,61 +30,6 @@ class ActivityLogger
             'occurred_at' => now(),
             'meta' => $meta ?: null,
         ]);
-    }
-
-    /**
-     * @param  array<string,mixed>  $meta
-     */
-    public function quizStart(User $user, string $eventType, Course $course, ?Lesson $lesson, Quiz $quiz, array $meta = []): QuizActivityLog
-    {
-        return QuizActivityLog::query()->create([
-            'user_id' => $user->id,
-            'course_id' => $course->id,
-            'lesson_id' => $lesson?->id,
-            'quiz_id' => $quiz->id,
-            'event_type' => $eventType,
-            'occurred_at' => now(),
-            'started_at' => now(),
-            'meta' => $meta ?: null,
-        ]);
-    }
-
-    /**
-     * @param  array<string,mixed>  $meta
-     */
-    public function quizEnd(QuizActivityLog $log, QuizAttempt $attempt, array $meta = []): QuizActivityLog
-    {
-        $startedAt = $log->started_at;
-        $durationSeconds = $startedAt ? max(0, now()->diffInSeconds($startedAt)) : null;
-        $merged = array_merge($log->meta ?? [], $meta);
-
-        $log->forceFill([
-            'occurred_at' => now(),
-            'ended_at' => now(),
-            'attempt_id' => $attempt->id,
-            'score_percent' => $attempt->score_percent,
-            'passed' => $attempt->passed,
-            'duration_seconds' => $durationSeconds,
-            'meta' => $merged ?: null,
-        ])->save();
-
-        QuizActivityLog::query()->create([
-            'user_id' => $log->user_id,
-            'course_id' => $log->course_id,
-            'lesson_id' => $log->lesson_id,
-            'quiz_id' => $log->quiz_id,
-            'event_type' => 'quiz_submitted',
-            'occurred_at' => now(),
-            'started_at' => $log->started_at,
-            'ended_at' => $log->ended_at,
-            'attempt_id' => $attempt->id,
-            'score_percent' => $attempt->score_percent,
-            'passed' => $attempt->passed,
-            'duration_seconds' => $durationSeconds,
-            'meta' => array_merge($merged ?: [], ['start_log_id' => $log->id]),
-        ]);
-
-        return $log;
     }
 
     /**
@@ -129,5 +74,24 @@ class ActivityLogger
             'meta' => $meta ?: null,
         ]);
     }
-}
 
+    /**
+     * @param  array<string,mixed>  $meta
+     */
+    public function assignmentInstant(
+        User $user,
+        string $eventType,
+        Team $team,
+        ?Assignment $assignment = null,
+        array $meta = [],
+    ): AssignmentActivityLog {
+        return AssignmentActivityLog::query()->create([
+            'user_id' => $user->id,
+            'team_id' => $team->id,
+            'assignment_id' => $assignment?->id,
+            'event_type' => $eventType,
+            'occurred_at' => now(),
+            'meta' => $meta ?: null,
+        ]);
+    }
+}

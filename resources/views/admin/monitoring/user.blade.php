@@ -17,7 +17,7 @@
 
     <div class="space-y-3">
         @foreach($events as $e)
-            <div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+            <div class="rounded-xl border border-white/5 bg-panel p-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="text-sm text-zinc-400">{{ $e->occurred_at?->format('Y-m-d H:i:s') }}</div>
                     <div class="font-mono text-xs text-zinc-300">{{ $e->event_type }}</div>
@@ -28,9 +28,6 @@
                     @endif
                     @if($e->lesson)
                         <div><span class="text-zinc-500">{{ __('Lesson:') }}</span> {{ $e->lesson->title }}</div>
-                    @endif
-                    @if($e->quiz)
-                        <div><span class="text-zinc-500">{{ __('Quiz:') }}</span> {{ $e->quiz->title }}</div>
                     @endif
                     @if(is_array($e->meta) && isset($e->meta['forum_category_name']))
                         <div><span class="text-zinc-500">{{ __('Forum:') }}</span> {{ $e->meta['forum_category_name'] }}</div>

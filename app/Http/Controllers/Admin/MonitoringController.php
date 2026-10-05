@@ -7,13 +7,12 @@ use App\Models\Course;
 use App\Models\CourseActivityLog;
 use App\Models\ForumActivityLog;
 use App\Models\LessonActivityLog;
-use App\Models\QuizActivityLog;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class MonitoringController extends Controller
 {
@@ -33,15 +32,13 @@ class MonitoringController extends Controller
         ['userId' => $userId, 'courseId' => $courseId, 'eventType' => $eventType, 'from' => $from, 'to' => $to] = $this->filters($request);
 
         $lesson = DB::table('lesson_activity_logs')
-            ->selectRaw("'lesson' as source, id, user_id, course_id, lesson_id, null as quiz_id, event_type, occurred_at, meta");
-        $quiz = DB::table('quiz_activity_logs')
-            ->selectRaw("'quiz' as source, id, user_id, course_id, lesson_id, quiz_id, event_type, occurred_at, meta");
+            ->selectRaw("'lesson' as source, id, user_id, course_id, lesson_id, event_type, occurred_at, meta");
         $forum = DB::table('forum_activity_logs')
-            ->selectRaw("'forum' as source, id, user_id, null as course_id, null as lesson_id, null as quiz_id, event_type, occurred_at, meta");
+            ->selectRaw("'forum' as source, id, user_id, null as course_id, null as lesson_id, event_type, occurred_at, meta");
         $course = DB::table('course_activity_logs')
-            ->selectRaw("'course' as source, id, user_id, course_id, null as lesson_id, null as quiz_id, event_type, occurred_at, meta");
+            ->selectRaw("'course' as source, id, user_id, course_id, null as lesson_id, event_type, occurred_at, meta");
 
-        foreach ([$lesson, $quiz, $forum, $course] as $q) {
+        foreach ([$lesson, $forum, $course] as $q) {
             if ($userId) {
                 $q->where('user_id', $userId);
             }
@@ -59,7 +56,7 @@ class MonitoringController extends Controller
             }
         }
 
-        $union = $lesson->unionAll($quiz)->unionAll($forum)->unionAll($course);
+        $union = $lesson->unionAll($forum)->unionAll($course);
         $base = DB::query()->fromSub($union, 'events')->orderByDesc('occurred_at');
 
         $perPage = 50;
@@ -78,12 +75,7 @@ class MonitoringController extends Controller
             ? collect()
             : \App\Models\Lesson::query()->whereIn('id', $lessonIds)->get()->keyBy('id');
 
-        $quizIds = $rows->pluck('quiz_id')->unique()->filter()->values();
-        $quizzesById = $quizIds->isEmpty()
-            ? collect()
-            : \App\Models\Quiz::query()->whereIn('id', $quizIds)->get()->keyBy('id');
-
-        $events = $rows->map(function ($r) use ($usersById, $coursesById, $lessonsById, $quizzesById) {
+        $events = $rows->map(function ($r) use ($usersById, $coursesById, $lessonsById) {
             $meta = $r->meta ? json_decode($r->meta, true) : null;
 
             return (object) [
@@ -92,7 +84,6 @@ class MonitoringController extends Controller
                 'user' => $usersById->get($r->user_id),
                 'course' => $r->course_id ? $coursesById->get($r->course_id) : null,
                 'lesson' => $r->lesson_id ? $lessonsById->get($r->lesson_id) : null,
-                'quiz' => $r->quiz_id ? $quizzesById->get($r->quiz_id) : null,
                 'event_type' => $r->event_type,
                 'occurred_at' => $r->occurred_at ? Carbon::parse($r->occurred_at) : null,
                 'meta' => $meta,
@@ -107,11 +98,10 @@ class MonitoringController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
+        $users = User::query()->with('profile')->orderBy('email')->get(['id', 'email']);
         $courses = Course::query()->orderBy('title')->get(['id', 'title']);
         $eventTypes = array_values(array_unique(array_merge(
             LessonActivityLog::query()->select('event_type')->distinct()->pluck('event_type')->all(),
-            QuizActivityLog::query()->select('event_type')->distinct()->pluck('event_type')->all(),
             ForumActivityLog::query()->select('event_type')->distinct()->pluck('event_type')->all(),
             CourseActivityLog::query()->select('event_type')->distinct()->pluck('event_type')->all(),
         )));
@@ -145,43 +135,11 @@ class MonitoringController extends Controller
         }
 
         $logs = $query->paginate(50)->withQueryString();
-        $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
+        $users = User::query()->with('profile')->orderBy('email')->get(['id', 'email']);
         $courses = Course::query()->orderBy('title')->get(['id', 'title']);
         $eventTypes = LessonActivityLog::query()->select('event_type')->distinct()->orderBy('event_type')->pluck('event_type')->all();
 
         return view('admin.monitoring.lessons', compact('logs', 'users', 'courses', 'eventTypes'));
-    }
-
-    public function quizzes(Request $request): View
-    {
-        ['userId' => $userId, 'courseId' => $courseId, 'eventType' => $eventType, 'from' => $from, 'to' => $to] = $this->filters($request);
-
-        $query = QuizActivityLog::query()
-            ->with(['user.profile', 'course', 'lesson', 'quiz', 'attempt'])
-            ->orderByDesc('occurred_at');
-
-        if ($userId) {
-            $query->where('user_id', $userId);
-        }
-        if ($courseId) {
-            $query->where('course_id', $courseId);
-        }
-        if ($eventType) {
-            $query->where('event_type', $eventType);
-        }
-        if ($from) {
-            $query->where('occurred_at', '>=', $from);
-        }
-        if ($to) {
-            $query->where('occurred_at', '<=', $to);
-        }
-
-        $logs = $query->paginate(50)->withQueryString();
-        $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
-        $courses = Course::query()->orderBy('title')->get(['id', 'title']);
-        $eventTypes = QuizActivityLog::query()->select('event_type')->distinct()->orderBy('event_type')->pluck('event_type')->all();
-
-        return view('admin.monitoring.quizzes', compact('logs', 'users', 'courses', 'eventTypes'));
     }
 
     public function forums(Request $request): View
@@ -206,7 +164,7 @@ class MonitoringController extends Controller
         }
 
         $logs = $query->paginate(50)->withQueryString();
-        $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
+        $users = User::query()->with('profile')->orderBy('email')->get(['id', 'email']);
         $eventTypes = ForumActivityLog::query()->select('event_type')->distinct()->orderBy('event_type')->pluck('event_type')->all();
 
         return view('admin.monitoring.forums', compact('logs', 'users', 'eventTypes'));
@@ -237,7 +195,7 @@ class MonitoringController extends Controller
         }
 
         $logs = $query->paginate(50)->withQueryString();
-        $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
+        $users = User::query()->with('profile')->orderBy('email')->get(['id', 'email']);
         $courses = Course::query()->orderBy('title')->get(['id', 'title']);
         $eventTypes = CourseActivityLog::query()->select('event_type')->distinct()->orderBy('event_type')->pluck('event_type')->all();
 
@@ -250,7 +208,6 @@ class MonitoringController extends Controller
             'user_id' => $user->id,
         ]));
 
-        // Reuse index() for a user-focused timeline.
         $view = $this->index($req);
         /** @var array{events:mixed,users:mixed,courses:mixed,eventTypes:mixed} $data */
         $data = $view->getData();
@@ -259,4 +216,3 @@ class MonitoringController extends Controller
         return view('admin.monitoring.user', compact('user', 'events'));
     }
 }
-

@@ -7,10 +7,6 @@
         class="rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.monitoring.lessons') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
         {{ __('Lessons') }}
     </a>
-    <a href="{{ route('admin.monitoring.quizzes') }}"
-        class="rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.monitoring.quizzes') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
-        {{ __('Quizzes') }}
-    </a>
     <a href="{{ route('admin.monitoring.forums') }}"
         class="rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.monitoring.forums') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
         {{ __('Forums') }}
@@ -20,4 +16,3 @@
         {{ __('Courses') }}
     </a>
 </div>
-

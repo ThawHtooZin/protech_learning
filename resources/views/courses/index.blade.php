@@ -10,9 +10,9 @@
 
     <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         @forelse($courses as $course)
-            <a href="{{ route('courses.show', $course) }}" class="group flex flex-col rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm transition hover:border-emerald-800/60 hover:bg-zinc-900/80">
+            <a href="{{ route('courses.show', $course) }}" class="group flex flex-col rounded-2xl border border-white/5 bg-panel p-6 transition hover:border-white/10 hover:bg-rail">
                 <div class="flex items-start justify-between gap-3">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600/90 to-teal-700 text-sm font-bold text-white">{{ \Illuminate\Support\Str::substr($course->title, 0, 1) }}</span>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-sm font-bold text-white">{{ \Illuminate\Support\Str::substr($course->title, 0, 1) }}</span>
                     @auth
                         @if(in_array($course->id, $enrolledIds, true))
                             <span class="rounded-full bg-emerald-950 px-2.5 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-800/50">{{ __('Enrolled') }}</span>

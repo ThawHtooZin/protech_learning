@@ -35,7 +35,7 @@ class CourseCatalogController extends Controller
             abort(404);
         }
 
-        $course->load(['modules.lessons', 'modules.quizzes']);
+        $course->load(['modules.lessons']);
 
         $user = $request->user();
         $enrolled = $user && $this->lessonAccess->userIsEnrolled($user, $course);
@@ -45,15 +45,11 @@ class CourseCatalogController extends Controller
         $completion = 0;
         $completedLessonIds = collect();
         $accessibleLessonIds = collect();
-        $accuracyPercent = null;
 
         if ($user && $showCourseContent) {
             $accessibleLessonIds = $this->lessonAccess->accessibleLessonIds($user, $course);
             $completedLessonIds = $this->lessonAccess->completedLessonIdsForCourse($user, $course);
             $completion = $this->lessonAccess->courseCompletionPercent($user, $course);
-            if ($completion === 100) {
-                $accuracyPercent = $this->lessonAccess->courseAnswerAccuracyPercent($user, $course);
-            }
         }
 
         return view('courses.show', compact(
@@ -64,7 +60,6 @@ class CourseCatalogController extends Controller
             'completion',
             'completedLessonIds',
             'accessibleLessonIds',
-            'accuracyPercent',
         ));
     }
 

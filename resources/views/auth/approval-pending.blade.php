@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mx-auto max-w-md py-8">
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 shadow-xl shadow-black/20">
+        <div class="rounded-2xl border border-white/5 bg-panel p-8">
             <h1 class="text-center text-2xl font-bold text-white">{{ __('Account pending approval') }}</h1>
             <p class="mt-2 text-center text-sm text-zinc-500">
                 {{ __('Your account was created successfully, but an admin must approve it before you can use Protech LMS.') }}
