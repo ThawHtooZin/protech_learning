@@ -9,23 +9,23 @@
     $indent = min($depth, $maxDepth) * 16;
 @endphp
 
-<article class="rounded-lg border border-white/5 bg-panel p-4" style="margin-left: {{ $indent }}px">
+<article class="rounded-lg border border-zinc-200 bg-panel p-4" style="margin-left: {{ $indent }}px">
     <p class="text-xs text-zinc-500">
-        <a href="{{ route('profiles.show', $post->user->profile) }}" class="text-emerald-400 hover:underline">{{ $post->user->profile->display_name ?? $post->user->name }}</a>
+        <a href="{{ route('profiles.show', $post->user->profile) }}" class="text-emerald-700 hover:underline">{{ $post->user->profile->display_name ?? $post->user->name }}</a>
         · {{ $post->created_at->diffForHumans() }}
-        <a href="#post-{{ $post->id }}" id="post-{{ $post->id }}" class="ml-2 text-zinc-600 hover:text-zinc-400">#{{ $post->id }}</a>
+        <a href="#post-{{ $post->id }}" id="post-{{ $post->id }}" class="ml-2 text-zinc-600 hover:text-zinc-600">#{{ $post->id }}</a>
     </p>
-    <div class="prose prose-invert mt-2 max-w-none text-zinc-200 prose-a:text-emerald-400">{!! app(\App\Services\MentionRenderer::class)->toHtml($post->body, 'forum_post', $post->id) !!}</div>
+    <div class="prose prose-invert mt-2 max-w-none text-zinc-800 prose-a:text-emerald-700">{!! app(\App\Services\MentionRenderer::class)->toHtml($post->body, 'forum_post', $post->id) !!}</div>
 
     @auth
         <details class="mt-3">
-            <summary class="cursor-pointer text-xs text-zinc-400 hover:text-white">{{ __('Reply') }}</summary>
+            <summary class="cursor-pointer text-xs text-zinc-600 hover:text-zinc-900">{{ __('Reply') }}</summary>
             <form method="POST" action="{{ route('forums.posts.store', [$forumCategory, $forumThread]) }}" class="mt-2 space-y-2">
                 @csrf
                 <input type="hidden" name="parent_id" value="{{ $post->id }}">
                 <textarea name="body" rows="3" required placeholder="{{ __('Write a reply…') }}"
-                    class="w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"></textarea>
-                <button type="submit" class="rounded-md bg-zinc-700 px-3 py-1.5 text-xs text-white hover:bg-zinc-600">{{ __('Post reply') }}</button>
+                    class="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-zinc-900"></textarea>
+                <button type="submit" class="rounded-md bg-zinc-700 px-3 py-1.5 text-xs text-zinc-900 hover:bg-zinc-600">{{ __('Post reply') }}</button>
             </form>
         </details>
     @endauth

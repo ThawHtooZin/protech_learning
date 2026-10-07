@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
-use App\Models\Course;
 use App\Models\Profile;
 use App\Models\Team;
 use App\Models\User;
@@ -81,11 +80,9 @@ class UserAdminController extends Controller
 
     public function show(User $user): View
     {
-        $user->load('profile', 'enrollments', 'teams');
-        $courses = Course::query()->orderBy('title')->get();
-        $assignedCourseIds = $user->enrollments()->pluck('course_id')->all();
+        $user->load('profile', 'teams');
 
-        return view('admin.users.show', compact('user', 'courses', 'assignedCourseIds'));
+        return view('admin.users.show', compact('user'));
     }
 
     public function approve(Request $request, User $user): RedirectResponse
@@ -126,19 +123,6 @@ class UserAdminController extends Controller
         ])->save();
 
         return back()->with('status', __('Role updated.'));
-    }
-
-    public function updateCourses(Request $request, User $user): RedirectResponse
-    {
-        $validated = $request->validate([
-            'course_ids' => ['array'],
-            'course_ids.*' => ['integer', 'exists:courses,id'],
-        ]);
-
-        $courseIds = $validated['course_ids'] ?? [];
-        $user->courses()->sync($courseIds);
-
-        return back()->with('status', __('Course access updated.'));
     }
 
     public function updatePassword(Request $request, User $user): RedirectResponse

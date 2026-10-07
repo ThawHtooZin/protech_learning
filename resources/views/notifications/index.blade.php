@@ -5,9 +5,9 @@
 @section('content')
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ __('Notifications') }}</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Notifications') }}</h1>
             @if($unreadCount > 0)
-                <p class="mt-1 text-sm text-zinc-400">{{ $unreadCount }} {{ __('unread') }}</p>
+                <p class="mt-1 text-sm text-zinc-600">{{ $unreadCount }} {{ __('unread') }}</p>
             @else
                 <p class="mt-1 text-sm text-zinc-500">{{ __('You’re all caught up.') }}</p>
             @endif
@@ -15,7 +15,7 @@
         @if($unreadCount > 0)
             <form method="POST" action="{{ route('notifications.read-all') }}">
                 @csrf
-                <button type="submit" class="rounded-lg border border-zinc-600 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800">{{ __('Mark all as read') }}</button>
+                <button type="submit" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100">{{ __('Mark all as read') }}</button>
             </form>
         @endif
     </div>
@@ -23,15 +23,15 @@
     <ul class="space-y-2">
         @forelse($notifications as $n)
             @php $data = is_array($n->data) ? $n->data : []; @endphp
-            <li class="rounded-xl border px-4 py-4 transition {{ $n->read_at ? 'border-white/5 bg-panel' : 'border-white/10 bg-rail' }}">
+            <li class="rounded-xl border px-4 py-4 transition {{ $n->read_at ? 'border-zinc-200 bg-panel' : 'border-zinc-200 bg-rail' }}">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                         @if(!$n->read_at)
                             <span class="mb-2 inline-block rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">{{ __('Unread') }}</span>
                         @endif
-                        <p class="text-sm text-zinc-200">
+                        <p class="text-sm text-zinc-800">
                             @if(!empty($data['actor_name']))
-                                <span class="font-medium text-white">{{ $data['actor_name'] }}</span>
+                                <span class="font-medium text-zinc-900">{{ $data['actor_name'] }}</span>
                                 <span class="text-zinc-500"> — </span>
                             @endif
                             {{ $data['message'] ?? __('Notification') }}
@@ -46,7 +46,7 @@
                 </div>
             </li>
         @empty
-            <li class="rounded-xl border border-white/5 bg-panel px-6 py-12 text-center text-zinc-500">{{ __('No notifications yet.') }}</li>
+            <li class="rounded-xl border border-zinc-200 bg-panel px-6 py-12 text-center text-zinc-500">{{ __('No notifications yet.') }}</li>
         @endforelse
     </ul>
     <div class="mt-8">{{ $notifications->links() }}</div>

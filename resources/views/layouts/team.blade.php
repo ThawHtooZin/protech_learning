@@ -8,14 +8,14 @@
     <title>@yield('title', $team->name) — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex min-h-dvh flex-col bg-canvas text-zinc-100 antialiased">
+<body class="flex min-h-dvh flex-col bg-canvas text-zinc-900 antialiased">
     @include('partials.learn-header')
 
     @if(session('status'))
-        <div class="border-b border-emerald-900/40 bg-emerald-950/40 px-4 py-2 text-sm text-emerald-100 sm:px-6">{{ session('status') }}</div>
+        <div class="border-b border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800 sm:px-6">{{ session('status') }}</div>
     @endif
     @if($errors->any())
-        <div class="border-b border-red-900/40 bg-red-950/40 px-4 py-2 text-sm text-red-100 sm:px-6">
+        <div class="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800 sm:px-6">
             <ul class="list-inside list-disc">@foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach</ul>
         </div>
     @endif

@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\BankAccountAdminController;
+use App\Http\Controllers\Admin\CourseAccessAdminController;
 use App\Http\Controllers\Admin\CourseAdminController;
+use App\Http\Controllers\Admin\CoursePurchaseAdminController;
 use App\Http\Controllers\Admin\CourseStructureController;
 use App\Http\Controllers\Admin\ForumSetupController;
 use App\Http\Controllers\Admin\LessonAdminController;
@@ -49,6 +52,7 @@ Route::get('u/{profile}', [ProfileController::class, 'show'])->name('profiles.sh
 
 Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::post('courses/{course}/purchase', [CourseCatalogController::class, 'purchase'])->name('courses.purchase');
 
     Route::middleware('enrolled.course')->group(function () {
         Route::get('lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
@@ -113,15 +117,25 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('users/{user}/approve', [UserAdminController::class, 'approve'])->name('users.approve');
     Route::post('users/{user}/revoke', [UserAdminController::class, 'revoke'])->name('users.revoke');
     Route::put('users/{user}/role', [UserAdminController::class, 'updateRole'])->name('users.role');
-    Route::put('users/{user}/courses', [UserAdminController::class, 'updateCourses'])->name('users.courses');
     Route::put('users/{user}/password', [UserAdminController::class, 'updatePassword'])->name('users.password');
     Route::delete('users/{user}', [UserAdminController::class, 'destroy'])->name('users.destroy');
+
+    Route::get('purchases', [CoursePurchaseAdminController::class, 'index'])->name('purchases.index');
+    Route::post('purchases/{purchase}/approve', [CoursePurchaseAdminController::class, 'approve'])->name('purchases.approve');
+    Route::post('purchases/{purchase}/reject', [CoursePurchaseAdminController::class, 'reject'])->name('purchases.reject');
+    Route::get('purchases/{purchase}/slip', [CoursePurchaseAdminController::class, 'slip'])->name('purchases.slip');
+
+    Route::get('banks', [BankAccountAdminController::class, 'index'])->name('banks.index');
+    Route::post('banks', [BankAccountAdminController::class, 'store'])->name('banks.store');
+    Route::put('banks/{bank}', [BankAccountAdminController::class, 'update'])->name('banks.update');
+    Route::delete('banks/{bank}', [BankAccountAdminController::class, 'destroy'])->name('banks.destroy');
 
     Route::get('courses', [CourseAdminController::class, 'index'])->name('courses.index');
     Route::get('courses/create', [CourseAdminController::class, 'create'])->name('courses.create');
     Route::post('courses', [CourseAdminController::class, 'store'])->name('courses.store');
     Route::get('courses/{course}/edit', [CourseAdminController::class, 'edit'])->name('courses.edit');
     Route::put('courses/{course}', [CourseAdminController::class, 'update'])->name('courses.update');
+    Route::put('courses/{course}/access', [CourseAccessAdminController::class, 'update'])->name('courses.access.update');
     Route::delete('courses/{course}', [CourseAdminController::class, 'destroy'])->name('courses.destroy');
     Route::put('courses/{course}/modules/reorder', [CourseStructureController::class, 'reorderModules'])->name('modules.reorder');
     Route::put('courses/{course}/modules/{module}/lessons/reorder', [CourseStructureController::class, 'reorderLessons'])->name('lessons.reorder');

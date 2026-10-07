@@ -16,9 +16,13 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View
     {
         $user = $request->user();
+
         $courses = Course::query()
             ->where('is_published', true)
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->where(function ($q) use ($user) {
+                $q->whereHas('enrollments', fn ($e) => $e->where('user_id', $user->id))
+                    ->orWhereHas('teams.users', fn ($t) => $t->where('users.id', $user->id));
+            })
             ->withCount('modules')
             ->orderBy('title')
             ->get();

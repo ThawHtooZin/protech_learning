@@ -8,17 +8,11 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         $this->app->singleton(MentionRenderer::class, fn () => new MentionRenderer);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         View::composer(['layouts.learn', 'layouts.team', 'partials.learn-header'], function ($view): void {
@@ -29,6 +23,26 @@ class AppServiceProvider extends ServiceProvider
                 );
             } else {
                 $view->with('unreadNotificationCount', 0);
+            }
+        });
+
+        // Once per browser session: surface latest unread notification calmly.
+        View::composer(['layouts.learn', 'layouts.team'], function ($view): void {
+            $view->with('notiCatchup', null);
+
+            if (! auth()->check()) {
+                return;
+            }
+
+            if (session()->has('noti_catchup_shown')) {
+                return;
+            }
+
+            $latest = auth()->user()->unreadNotifications()->latest()->first();
+            session(['noti_catchup_shown' => true]);
+
+            if ($latest) {
+                $view->with('notiCatchup', $latest);
             }
         });
     }

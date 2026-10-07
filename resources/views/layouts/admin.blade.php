@@ -7,16 +7,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', __('Admin')) — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
+    <style>[x-cloak]{display:none!important}</style>
 </head>
-<body class="min-h-full bg-canvas text-zinc-100 antialiased">
+<body class="min-h-full bg-canvas text-zinc-900 antialiased">
     <div class="flex min-h-dvh flex-col md:flex-row">
         {{-- Sidebar --}}
-        <aside class="flex w-full shrink-0 flex-col self-stretch border-b border-white/5 bg-rail md:min-h-dvh md:w-64 md:border-b-0 md:border-r">
-            <div class="border-b border-zinc-800 px-4 py-5">
+        <aside class="flex w-full shrink-0 flex-col self-stretch border-b border-zinc-200 bg-rail md:min-h-dvh md:w-64 md:border-b-0 md:border-r">
+            <div class="border-b border-zinc-200 px-4 py-5">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                     <span class="flex h-8 w-8 items-center justify-center rounded-md bg-amber-600 text-xs font-bold text-zinc-950">A</span>
                     <div>
-                        <p class="text-sm font-semibold text-white">{{ __('Admin') }}</p>
+                        <p class="text-sm font-semibold text-zinc-900">{{ __('Admin') }}</p>
                         <p class="text-xs text-zinc-500">{{ __('Content & settings') }}</p>
                     </div>
                 </a>
@@ -24,67 +26,78 @@
             <nav class="flex max-h-[50vh] flex-1 flex-col gap-0.5 overflow-y-auto p-3 md:max-h-none" data-compact-my>
                 <p class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{{ __('Manage') }}</p>
                 <a href="{{ route('admin.dashboard') }}"
-                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.dashboard') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.dashboard') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                     <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     {{ __('Overview') }}
                 </a>
                 <a href="{{ route('admin.courses.index') }}"
-                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.courses.*', 'admin.modules.*', 'admin.lessons.*') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.courses.*', 'admin.modules.*', 'admin.lessons.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                     <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     {{ __('Courses') }}
                 </a>
+                <a href="{{ route('admin.purchases.index') }}"
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.purchases.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                    <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    {{ __('Purchases') }}
+                </a>
+                <a href="{{ route('admin.banks.index') }}"
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.banks.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                    <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    {{ __('Bank accounts') }}
+                </a>
                 <a href="{{ route('admin.users.index') }}"
-                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.users.*', 'admin.teams.*') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.users.*', 'admin.teams.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                     <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1m-4 6H2v-2a4 4 0 014-4h5m4-6a4 4 0 11-8 0 4 4 0 018 0zm6 2a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     {{ __('Teams') }}
                 </a>
                 <a href="{{ route('admin.monitoring.lessons') }}"
-                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.monitoring.*') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.monitoring.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                     <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-4M4 19h16"/></svg>
                     {{ __('Monitoring') }}
                 </a>
                 <p class="mb-2 mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{{ __('Community') }}</p>
                 <a href="{{ route('admin.forums.categories') }}"
-                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.forums.categories') || request()->routeIs('admin.forums.categories.*') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.forums.categories') || request()->routeIs('admin.forums.categories.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                     <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
                     {{ __('Forum categories') }}
                 </a>
                 <a href="{{ route('admin.forums.tags') }}"
-                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.forums.tags') || request()->routeIs('admin.forums.tags.*') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white' }}">
+                    class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('admin.forums.tags') || request()->routeIs('admin.forums.tags.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                     <svg class="h-4 w-4 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
                     {{ __('Tags') }}
                 </a>
             </nav>
-            <div class="border-t border-zinc-800 p-3">
-                <a href="{{ route('courses.index') }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-emerald-400 hover:bg-zinc-900 hover:text-emerald-300">
+            <div class="border-t border-zinc-200 p-3">
+                <a href="{{ route('courses.index') }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-emerald-700 hover:bg-zinc-100 hover:text-emerald-800">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     {{ __('Back to learning site') }}
                 </a>
                 <form method="POST" action="{{ route('logout') }}" class="mt-2">
                     @csrf
-                    <button type="submit" class="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-500 hover:bg-zinc-900 hover:text-white">{{ __('Log out') }}</button>
+                    <button type="submit" class="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900">{{ __('Log out') }}</button>
                 </form>
             </div>
         </aside>
 
         {{-- Main --}}
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="flex items-center justify-between border-b border-white/5 bg-header px-6 py-4">
-                <h1 class="truncate text-lg font-semibold text-white" data-compact-my>@yield('heading', __('Admin'))</h1>
-                <div class="flex items-center gap-3 text-sm text-zinc-400" data-compact-my>
+            <header class="flex items-center justify-between border-b border-zinc-200 bg-header px-6 py-4">
+                <h1 class="truncate text-lg font-semibold text-zinc-900" data-compact-my>@yield('heading', __('Admin'))</h1>
+                <div class="flex items-center gap-3 text-sm text-zinc-600" data-compact-my>
                     @include('partials.locale-switcher')
                     <span>{{ auth()->user()->profile?->display_name ?? auth()->user()->email }}</span>
                 </div>
             </header>
             <div class="flex-1 overflow-auto bg-canvas p-6 lg:p-8">
                 @if(session('status'))
-                    <p class="mb-6 rounded-lg border border-emerald-800/60 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</p>
+                    <div id="protech-flash" data-message="{{ session('status') }}" data-type="success" class="hidden"></div>
                 @endif
                 @if(session('error'))
-                    <p class="mb-6 rounded-lg border border-amber-800/60 bg-amber-950/50 px-4 py-3 text-sm text-amber-100">{{ session('error') }}</p>
+                    <div id="protech-flash-error" data-message="{{ session('error') }}" data-type="warning" class="hidden"></div>
+                    <script>document.addEventListener('DOMContentLoaded',()=>{const e=document.getElementById('protech-flash-error');if(e&&window.ProtechAlert)ProtechAlert.toast(e.dataset.message,'warning');});</script>
                 @endif
                 @if($errors->any())
-                    <ul class="mb-6 list-inside list-disc rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-100">
+                    <ul class="mb-6 list-inside list-disc rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                         @foreach($errors->all() as $err)
                             <li>{{ $err }}</li>
                         @endforeach
@@ -94,5 +107,6 @@
             </div>
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>

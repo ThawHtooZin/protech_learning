@@ -73,8 +73,11 @@ class HtmlCourseStructureSeeder extends Seeder
         $course = Course::query()->create([
             'title' => 'Learn HTML — Step by Step',
             'slug' => self::SLUG,
-            'description' => 'HTML #1–#14 in order. Playlist videos are unlisted-friendly (embed by ID).',
+            'description' => 'HTML #1–#14 in order; lesson quizzes unlock progress. Playlist videos are unlisted-friendly (embed by ID).',
             'is_published' => true,
+            'access_type' => 'public',
+            'price_mmk' => 15000,
+            'is_listed' => true,
         ]);
 
         foreach (self::MODULES as $mi => $modSpec) {

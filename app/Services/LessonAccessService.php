@@ -15,8 +15,28 @@ class LessonAccessService
         return $course->enrollments()->where('user_id', $user->id)->exists();
     }
 
+    public function userHasTeamAccess(User $user, Course $course): bool
+    {
+        return $course->teams()
+            ->whereHas('users', fn ($q) => $q->where('users.id', $user->id))
+            ->exists();
+    }
+
     /**
-     * Enrolled learners (and admins) may open any lesson in a published course.
+     * Admin, personal enrollment, or membership on a team linked to the course.
+     */
+    public function canAccessCourse(User $user, Course $course): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $this->userIsEnrolled($user, $course)
+            || $this->userHasTeamAccess($user, $course);
+    }
+
+    /**
+     * Enrolled / team-granted learners (and admins) may open any lesson in a published course.
      */
     public function canViewLesson(User $user, Lesson $lesson): bool
     {
@@ -25,11 +45,7 @@ class LessonAccessService
             return false;
         }
 
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        return $this->userIsEnrolled($user, $course);
+        return $this->canAccessCourse($user, $course);
     }
 
     /**
@@ -41,11 +57,7 @@ class LessonAccessService
             return collect();
         }
 
-        if ($user->isAdmin()) {
-            return $course->orderedLessons()->pluck('id');
-        }
-
-        if (! $this->userIsEnrolled($user, $course)) {
+        if (! $this->canAccessCourse($user, $course)) {
             return collect();
         }
 

@@ -6,16 +6,16 @@
 @source '../**/*.js';
 
 html {
-    background-color: #0f0f0f;
+    background-color: #f4f4f5;
 }
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-canvas: #0f0f0f;
-    --color-rail: #1c1c1c;
-    --color-header: #141414;
-    --color-panel: #161616;
+    --color-canvas: #f4f4f5;
+    --color-rail: #ffffff;
+    --color-header: #ffffff;
+    --color-panel: #ffffff;
 }
 
 /*
@@ -34,11 +34,11 @@ html {
     transform: translate(-50%, -50%);
     overflow: auto;
     border-radius: 0.75rem;
-    border: 1px solid rgb(63 63 70);
-    background: rgb(24 24 27);
-    color: rgb(244 244 245);
+    border: 1px solid rgb(228 228 231);
+    background: rgb(255 255 255);
+    color: rgb(24 24 27);
     padding: 0;
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.6);
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.2);
 }
 
 .admin-dialog--wide {
@@ -46,14 +46,74 @@ html {
 }
 
 .admin-dialog::backdrop {
-    background: rgb(0 0 0 / 0.75);
+    background: rgb(24 24 27 / 0.45);
+}
+
+/* Reusable modal component (<x-modal> / dialog.ui-modal) */
+.ui-modal {
+    position: fixed;
+    inset: auto;
+    left: 50%;
+    top: 50%;
+    z-index: 200;
+    margin: 0;
+    width: min(32rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    transform: translate(-50%, calc(-50% + 10px)) scale(0.96);
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgb(228 228 231);
+    background: rgb(255 255 255);
+    color: rgb(24 24 27);
+    padding: 0;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.28);
+    opacity: 0;
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        display 0.18s allow-discrete;
+}
+
+.ui-modal--sm {
+    width: min(24rem, calc(100vw - 2rem));
+}
+.ui-modal--md {
+    width: min(36rem, calc(100vw - 2rem));
+}
+.ui-modal--lg {
+    width: min(48rem, calc(100vw - 2rem));
+}
+.ui-modal--xl {
+    width: min(56rem, calc(100vw - 2rem));
+    height: min(40rem, calc(100dvh - 2rem));
+    max-height: calc(100dvh - 2rem);
+}
+
+.ui-modal[open].ui-modal--visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.ui-modal[open].ui-modal--closing {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px)) scale(0.96);
+}
+
+.ui-modal::backdrop {
+    background: rgb(24 24 27 / 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.ui-modal__panel {
+    height: 100%;
+    max-height: inherit;
 }
 
 /* Deep-link highlight when opening a notification to a @mention */
 .mention-flash {
     animation: mention-flash 1.2s ease-out 2;
     border-radius: 0.25rem;
-    outline: 2px solid rgb(251 191 36 / 0.85);
+    outline: 2px solid rgb(245 158 11 / 0.85);
     outline-offset: 2px;
 }
 
@@ -63,7 +123,7 @@ html {
         background-color: transparent;
     }
     50% {
-        background-color: rgb(251 191 36 / 0.15);
+        background-color: rgb(251 191 36 / 0.2);
     }
 }
 
@@ -75,7 +135,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(0 0 0 / 0.55);
+    background: rgb(24 24 27 / 0.4);
     opacity: 0;
     transition: opacity 0.25s ease;
     pointer-events: none;
@@ -122,6 +182,7 @@ html {
     font-size: 1.125rem;
     font-weight: 600;
     color: white;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
     animation: turn-in-fade-up 0.45s ease 0.15s both;
 }
 
@@ -262,4 +323,43 @@ html.locale-my h2 {
 html.locale-my .text-xs {
     font-size: 0.7rem;
     line-height: 1.25;
+}
+
+/* Course rich-text description (Quill HTML) */
+.course-prose p {
+    margin: 0.65em 0;
+    line-height: 1.65;
+}
+.course-prose h2 {
+    margin: 1.25em 0 0.5em;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: rgb(24 24 27);
+}
+.course-prose h3 {
+    margin: 1em 0 0.4em;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: rgb(24 24 27);
+}
+.course-prose ul {
+    margin: 0.65em 0;
+    list-style: disc;
+    padding-left: 1.25rem;
+}
+.course-prose ol {
+    margin: 0.65em 0;
+    list-style: decimal;
+    padding-left: 1.25rem;
+}
+.course-prose li {
+    margin: 0.25em 0;
+}
+.course-prose a {
+    color: rgb(4 120 87);
+    text-decoration: underline;
+}
+.course-prose strong,
+.course-prose b {
+    font-weight: 650;
 }

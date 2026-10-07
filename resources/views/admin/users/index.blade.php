@@ -4,13 +4,13 @@
 @section('heading', __('Users'))
 
 @section('content')
-    <nav class="flex gap-6 border-b border-zinc-800" aria-label="{{ __('User management sections') }}">
+    <nav class="flex gap-6 border-b border-zinc-200" aria-label="{{ __('User management sections') }}">
         <a href="{{ route('admin.users.index', ['tab' => 'teams']) }}"
-            @class(['border-b-2 px-1 pb-3 text-sm font-semibold', 'border-emerald-500 text-white' => $activeTab === 'teams', 'border-transparent text-zinc-500 hover:text-zinc-200' => $activeTab !== 'teams'])>
+            @class(['border-b-2 px-1 pb-3 text-sm font-semibold', 'border-emerald-500 text-zinc-900' => $activeTab === 'teams', 'border-transparent text-zinc-500 hover:text-zinc-800' => $activeTab !== 'teams'])>
             {{ __('Teams') }} <span class="ml-1 text-xs text-zinc-500">{{ $teamCount }}</span>
         </a>
         <a href="{{ route('admin.users.index', ['tab' => 'users']) }}"
-            @class(['border-b-2 px-1 pb-3 text-sm font-semibold', 'border-emerald-500 text-white' => $activeTab === 'users', 'border-transparent text-zinc-500 hover:text-zinc-200' => $activeTab !== 'users'])>
+            @class(['border-b-2 px-1 pb-3 text-sm font-semibold', 'border-emerald-500 text-zinc-900' => $activeTab === 'users', 'border-transparent text-zinc-500 hover:text-zinc-800' => $activeTab !== 'users'])>
             {{ __('All users') }} <span class="ml-1 text-xs text-zinc-500">{{ $userCount }}</span>
         </a>
     </nav>
@@ -29,7 +29,7 @@
 
         <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h2 class="text-lg font-semibold text-white">{{ __('Your teams') }}</h2>
+                <h2 class="text-lg font-semibold text-zinc-900">{{ __('Your teams') }}</h2>
                 <p class="mt-1 text-sm text-zinc-500">{{ __('Open a team to manage members.') }}</p>
             </div>
             <button id="open-create-team-dialog" type="button"
@@ -39,8 +39,8 @@
         </div>
 
         @if($teams->isEmpty())
-            <div class="mt-10 rounded-xl border border-dashed border-zinc-700 px-6 py-16 text-center">
-                <p class="text-sm font-medium text-zinc-300">{{ __('No teams yet') }}</p>
+            <div class="mt-10 rounded-xl border border-dashed border-zinc-300 px-6 py-16 text-center">
+                <p class="text-sm font-medium text-zinc-700">{{ __('No teams yet') }}</p>
                 <p class="mt-2 text-sm text-zinc-500">{{ __('Create a team, then add instructors and students.') }}</p>
                 <button type="button" data-open-create-team
                     class="mt-5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
@@ -51,9 +51,9 @@
             <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach($teams as $team)
                     @php($tile = $tileColors[($team->id - 1) % count($tileColors)])
-                    <article class="group relative rounded-2xl border border-white/5 bg-panel transition hover:border-white/10 hover:bg-rail">
+                    <article class="group relative rounded-2xl border border-zinc-200 bg-panel transition hover:border-zinc-300 hover:bg-rail">
                         <button type="button"
-                            class="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-lg leading-none text-zinc-500 hover:bg-zinc-800 hover:text-white"
+                            class="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-lg leading-none text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
                             aria-label="{{ __('Team options') }}"
                             data-open-team-options
                             data-team-id="{{ $team->id }}"
@@ -64,11 +64,11 @@
                         </button>
 
                         <a href="{{ route('admin.teams.show', $team) }}" class="flex items-start gap-4 p-5 pr-14">
-                            <span class="{{ $tile }} flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-xl font-bold text-white shadow-lg shadow-black/30">
+                            <span class="{{ $tile }} flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-xl font-bold text-zinc-900 shadow-lg shadow-black/30">
                                 {{ strtoupper(mb_substr($team->name, 0, 1)) }}
                             </span>
                             <span class="min-w-0 pt-1">
-                                <span class="block truncate text-lg font-semibold text-white group-hover:text-emerald-300">{{ $team->name }}</span>
+                                <span class="block truncate text-lg font-semibold text-zinc-900 group-hover:text-emerald-700">{{ $team->name }}</span>
                                 <span class="mt-1.5 block text-sm text-zinc-500">
                                     {{ trans_choice(':count member|:count members', $team->users_count, ['count' => $team->users_count]) }}
                                 </span>
@@ -83,19 +83,19 @@
             <div class="p-6 sm:p-7">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h2 id="create-team-title" class="text-lg font-semibold text-white">{{ __('Create team') }}</h2>
-                        <p class="mt-1 text-sm text-zinc-400">{{ __('Give the team a clear name, then add members.') }}</p>
+                        <h2 id="create-team-title" class="text-lg font-semibold text-zinc-900">{{ __('Create team') }}</h2>
+                        <p class="mt-1 text-sm text-zinc-600">{{ __('Give the team a clear name, then add members.') }}</p>
                     </div>
                     <form method="dialog">
-                        <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800">{{ __('Close') }}</button>
+                        <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100">{{ __('Close') }}</button>
                     </form>
                 </div>
                 <form method="POST" action="{{ route('admin.teams.store') }}" class="mt-6 space-y-4">
                     @csrf
                     <div>
-                        <label for="new-team-name" class="block text-sm font-medium text-zinc-300">{{ __('Team name') }}</label>
+                        <label for="new-team-name" class="block text-sm font-medium text-zinc-700">{{ __('Team name') }}</label>
                         <input id="new-team-name" type="text" name="name" value="{{ old('name') }}" required maxlength="120" autofocus
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                         @error('name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div class="flex justify-end">
@@ -111,11 +111,11 @@
             <div class="p-6 sm:p-7">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h2 id="team-options-title" class="text-lg font-semibold text-white">{{ __('Team settings') }}</h2>
-                        <p class="mt-1 text-sm text-zinc-400" data-team-options-subtitle></p>
+                        <h2 id="team-options-title" class="text-lg font-semibold text-zinc-900">{{ __('Team settings') }}</h2>
+                        <p class="mt-1 text-sm text-zinc-600" data-team-options-subtitle></p>
                     </div>
                     <form method="dialog">
-                        <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800">{{ __('Close') }}</button>
+                        <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100">{{ __('Close') }}</button>
                     </form>
                 </div>
 
@@ -123,22 +123,22 @@
                     @csrf
                     @method('PUT')
                     <div>
-                        <label for="team-options-name" class="block text-sm font-medium text-zinc-300">{{ __('Team name') }}</label>
+                        <label for="team-options-name" class="block text-sm font-medium text-zinc-700">{{ __('Team name') }}</label>
                         <input id="team-options-name" type="text" name="name" required maxlength="120"
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                     </div>
-                    <button type="submit" class="rounded-lg border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-zinc-100 hover:bg-zinc-800">
+                    <button type="submit" class="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-100">
                         {{ __('Save name') }}
                     </button>
                 </form>
 
-                <form id="team-options-delete-form" method="POST" action="#" class="mt-8 border-t border-zinc-800 pt-6"
+                <form id="team-options-delete-form" method="POST" action="#" class="mt-8 border-t border-zinc-200 pt-6"
                     onsubmit="return confirm(@json(__('Delete this team? Members will remain in the system.')));">
                     @csrf
                     @method('DELETE')
-                    <p class="text-sm font-medium text-red-300">{{ __('Delete team') }}</p>
+                    <p class="text-sm font-medium text-red-600">{{ __('Delete team') }}</p>
                     <p class="mt-1 text-xs text-zinc-500">{{ __('This cannot be undone.') }}</p>
-                    <button type="submit" class="mt-3 rounded-lg border border-red-900/60 px-4 py-2.5 text-sm text-red-300 hover:bg-red-950/40">
+                    <button type="submit" class="mt-3 rounded-lg border border-red-300 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
                         {{ __('Delete team') }}
                     </button>
                 </form>
@@ -191,37 +191,37 @@
             <div class="p-6 sm:p-7">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h2 id="create-account-title" class="text-lg font-semibold text-white">{{ __('Create account') }}</h2>
-                        <p class="mt-1 text-sm text-zinc-400">{{ __('Set up the account details and role.') }}</p>
+                        <h2 id="create-account-title" class="text-lg font-semibold text-zinc-900">{{ __('Create account') }}</h2>
+                        <p class="mt-1 text-sm text-zinc-600">{{ __('Set up the account details and role.') }}</p>
                     </div>
                     <form method="dialog">
-                        <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800">{{ __('Close') }}</button>
+                        <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100">{{ __('Close') }}</button>
                     </form>
                 </div>
 
                 <form method="POST" action="{{ route('admin.users.store', ['tab' => 'users']) }}" class="mt-6 grid gap-4 sm:grid-cols-2">
                     @csrf
                     <div>
-                        <label for="account-display-name" class="block text-sm font-medium text-zinc-300">{{ __('Display name') }}</label>
+                        <label for="account-display-name" class="block text-sm font-medium text-zinc-700">{{ __('Display name') }}</label>
                         <input id="account-display-name" type="text" name="display_name" value="{{ old('display_name') }}" required maxlength="255" autocomplete="name"
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                         @error('display_name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="account-username" class="block text-sm font-medium text-zinc-300">{{ __('Username') }}</label>
+                        <label for="account-username" class="block text-sm font-medium text-zinc-700">{{ __('Username') }}</label>
                         <input id="account-username" type="text" name="username" value="{{ old('username') }}" required pattern="[a-zA-Z0-9_]{2,32}" autocomplete="username"
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                         @error('username')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="account-email" class="block text-sm font-medium text-zinc-300">{{ __('Email') }}</label>
+                        <label for="account-email" class="block text-sm font-medium text-zinc-700">{{ __('Email') }}</label>
                         <input id="account-email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email"
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                         @error('email')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="account-role" class="block text-sm font-medium text-zinc-300">{{ __('Role') }}</label>
-                        <select id="account-role" name="role" required class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                        <label for="account-role" class="block text-sm font-medium text-zinc-700">{{ __('Role') }}</label>
+                        <select id="account-role" name="role" required class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                             @foreach(\App\Enums\UserRole::cases() as $role)
                                 <option value="{{ $role->value }}" @selected(old('role', \App\Enums\UserRole::Student->value) === $role->value)>{{ $role->label() }}</option>
                             @endforeach
@@ -229,15 +229,15 @@
                         @error('role')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="account-password" class="block text-sm font-medium text-zinc-300">{{ __('Password') }}</label>
+                        <label for="account-password" class="block text-sm font-medium text-zinc-700">{{ __('Password') }}</label>
                         <input id="account-password" type="password" name="password" required autocomplete="new-password"
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                         @error('password')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="account-password-confirmation" class="block text-sm font-medium text-zinc-300">{{ __('Confirm password') }}</label>
+                        <label for="account-password-confirmation" class="block text-sm font-medium text-zinc-700">{{ __('Confirm password') }}</label>
                         <input id="account-password-confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                            class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white">
+                            class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900">
                     </div>
                     <div class="flex justify-end gap-2 sm:col-span-2">
                         <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">{{ __('Create account') }}</button>
@@ -257,9 +257,9 @@
             @endif
         </script>
 
-        <div class="mt-6 overflow-x-auto border-b border-zinc-800">
+        <div class="mt-6 overflow-x-auto border-b border-zinc-200">
             <table class="w-full text-left text-sm">
-                <thead class="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                <thead class="border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500">
                     <tr>
                         <th class="px-4 py-3">{{ __('Person') }}</th>
                         <th class="px-4 py-3">{{ __('Email') }}</th>
@@ -271,26 +271,26 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-800">
                     @foreach($users as $user)
-                        <tr class="hover:bg-zinc-800/30">
+                        <tr class="hover:bg-zinc-100/30">
                             <td class="px-4 py-3">
-                                <a href="{{ route('admin.users.show', $user) }}" class="font-medium text-white hover:text-emerald-300">
+                                <a href="{{ route('admin.users.show', $user) }}" class="font-medium text-zinc-900 hover:text-emerald-700">
                                     {{ $user->profile?->display_name ?? $user->email }}
                                 </a>
                                 @if($user->profile)<div class="text-xs text-zinc-500">{{ '@'.$user->profile->handle }}</div>@endif
                             </td>
-                            <td class="px-4 py-3 text-zinc-400">{{ $user->email }}</td>
-                            <td class="px-4 py-3 text-zinc-400">{{ $user->teams->pluck('name')->join(', ') ?: __('None') }}</td>
-                            <td class="px-4 py-3 text-zinc-400">{{ $user->role->label() }}</td>
+                            <td class="px-4 py-3 text-zinc-600">{{ $user->email }}</td>
+                            <td class="px-4 py-3 text-zinc-600">{{ $user->teams->pluck('name')->join(', ') ?: __('None') }}</td>
+                            <td class="px-4 py-3 text-zinc-600">{{ $user->role->label() }}</td>
                             <td class="px-4 py-3">
                                 @if($user->approved_at)
-                                    <span class="text-emerald-300">{{ __('Approved') }}</span>
+                                    <span class="text-emerald-700">{{ __('Approved') }}</span>
                                 @else
-                                    <span class="text-amber-300">{{ __('Pending') }}</span>
+                                    <span class="text-amber-800">{{ __('Pending') }}</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('admin.users.show', $user) }}" class="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">{{ __('Manage') }}</a>
+                                    <a href="{{ route('admin.users.show', $user) }}" class="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100">{{ __('Manage') }}</a>
                                     @if(! $user->approved_at)
                                         <form method="POST" action="{{ route('admin.users.approve', $user) }}">
                                             @csrf

@@ -3,14 +3,19 @@
 namespace App\Http\Middleware;
 
 use App\Models\Lesson;
+use App\Services\LessonAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureEnrolledInCourse
 {
+    public function __construct(
+        private LessonAccessService $lessonAccess,
+    ) {}
+
     /**
-     * Block lesson routes unless the user is enrolled in that content’s course.
+     * Block lesson routes unless the user can access that lesson’s course.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -19,30 +24,20 @@ class EnsureEnrolledInCourse
             abort(403);
         }
 
-        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+        $lesson = $request->route('lesson');
+        if (! $lesson instanceof Lesson) {
             return $next($request);
         }
 
-        $courseId = $this->resolveCourseId($request);
-
-        if ($courseId === null) {
-            return $next($request);
+        $course = $lesson->course;
+        if (! $course) {
+            abort(404);
         }
 
-        if (! $user->enrollments()->where('course_id', $courseId)->exists()) {
-            abort(403, __('Enroll in this course to access lessons.'));
+        if (! $this->lessonAccess->canAccessCourse($user, $course)) {
+            abort(403);
         }
 
         return $next($request);
-    }
-
-    private function resolveCourseId(Request $request): ?int
-    {
-        $lesson = $request->route('lesson');
-        if ($lesson instanceof Lesson) {
-            return $lesson->course?->id;
-        }
-
-        return null;
     }
 }

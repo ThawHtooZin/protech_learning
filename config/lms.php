@@ -36,4 +36,15 @@ return [
             'my' => 'မြန်မာ',
         ],
     ],
+
+    'payments' => [
+        'disk' => env('LMS_PAYMENT_DISK', 'local'),
+        'slip_max_kb' => 5120,
+        'bank' => [
+            'name' => env('LMS_BANK_NAME', 'KBZPay'),
+            'account_name' => env('LMS_BANK_ACCOUNT_NAME', ''),
+            'account_number' => env('LMS_BANK_ACCOUNT_NUMBER', ''),
+            'note' => env('LMS_BANK_NOTE', ''),
+        ],
+    ],
 ];

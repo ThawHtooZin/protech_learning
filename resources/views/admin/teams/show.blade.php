@@ -15,19 +15,19 @@
     @endphp
 
     <div class="mb-6">
-        <a href="{{ route('admin.users.index', ['tab' => 'teams']) }}" class="text-sm text-emerald-400 hover:underline">
+        <a href="{{ route('admin.users.index', ['tab' => 'teams']) }}" class="text-sm text-emerald-700 hover:underline">
             ← {{ __('Back to teams') }}
         </a>
     </div>
 
-    <header class="mb-8 flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 pb-6">
+    <header class="mb-8 flex flex-wrap items-start justify-between gap-4 border-b border-zinc-200 pb-6">
         <div class="flex min-w-0 items-start gap-4">
-            <span class="{{ $tile }} flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-2xl font-bold text-white">
+            <span class="{{ $tile }} flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-2xl font-bold text-zinc-900">
                 {{ strtoupper(mb_substr($team->name, 0, 1)) }}
             </span>
             <div class="min-w-0">
-                <h2 class="truncate text-2xl font-semibold text-white">{{ $team->name }}</h2>
-                <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400">
+                <h2 class="truncate text-2xl font-semibold text-zinc-900">{{ $team->name }}</h2>
+                <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-600">
                     <span>{{ trans_choice(':count member|:count members', $team->users_count, ['count' => $team->users_count]) }}</span>
                     <span>{{ __(':count instructors', ['count' => $instructorCount]) }}</span>
                     <span>{{ __(':count students', ['count' => $studentCount]) }}</span>
@@ -41,29 +41,29 @@
                 {{ __('Add instructors') }}
             </button>
             <button type="button" data-open-assign="students"
-                class="rounded-lg border border-zinc-600 px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-800">
+                class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-100">
                 {{ __('Add students') }}
             </button>
         </div>
     </header>
 
-    <section class="mb-8 rounded-xl border border-white/5 bg-panel">
-        <div class="flex flex-col gap-3 border-b border-zinc-800 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 class="text-sm font-semibold text-white">{{ __('Members') }}</h3>
+    <section class="mb-8 rounded-xl border border-zinc-200 bg-panel">
+        <div class="flex flex-col gap-3 border-b border-zinc-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <h3 class="text-sm font-semibold text-zinc-900">{{ __('Members') }}</h3>
             <label class="sr-only" for="team-member-filter">{{ __('Filter members') }}</label>
             <input id="team-member-filter" type="search" placeholder="{{ __('Filter members...') }}"
-                class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-white placeholder:text-zinc-500 sm:max-w-xs">
+                class="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-900 placeholder:text-zinc-500 sm:max-w-xs">
         </div>
 
         @if($team->users->isEmpty())
             <div class="px-5 py-12 text-center">
-                <p class="text-sm text-zinc-400">{{ __('No members yet.') }}</p>
+                <p class="text-sm text-zinc-600">{{ __('No members yet.') }}</p>
                 <div class="mt-4 flex flex-wrap justify-center gap-3">
-                    <button type="button" data-open-assign="instructors" class="text-sm font-medium text-emerald-400 hover:text-emerald-300">
+                    <button type="button" data-open-assign="instructors" class="text-sm font-medium text-emerald-700 hover:text-emerald-700">
                         {{ __('Add instructors') }}
                     </button>
                     <span class="text-zinc-600">·</span>
-                    <button type="button" data-open-assign="students" class="text-sm font-medium text-emerald-400 hover:text-emerald-300">
+                    <button type="button" data-open-assign="students" class="text-sm font-medium text-emerald-700 hover:text-emerald-700">
                         {{ __('Add students') }}
                     </button>
                 </div>
@@ -73,20 +73,20 @@
                 <div data-member-group class="py-3">
                     <p class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{{ __('Instructors') }}</p>
                     @forelse($teamInstructors as $member)
-                        <div data-member-row class="flex items-center gap-3 border-b border-zinc-800/80 py-3 last:border-0"
+                        <div data-member-row class="flex items-center gap-3 border-b border-zinc-200 py-3 last:border-0"
                             data-search-text="{{ strtolower(($member->profile?->display_name ?? '').' '.$member->email.' instructor') }}">
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-zinc-200">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-semibold text-zinc-800">
                                 {{ strtoupper(mb_substr($member->profile?->display_name ?? $member->email, 0, 1)) }}
                             </span>
                             <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-white">{{ $member->profile?->display_name ?? $member->email }}</p>
+                                <p class="truncate text-sm font-medium text-zinc-900">{{ $member->profile?->display_name ?? $member->email }}</p>
                                 <p class="truncate text-xs text-zinc-500">{{ $member->email }}</p>
                             </div>
-                            <span class="rounded-md bg-sky-950 px-2 py-1 text-xs text-sky-300">{{ __('Instructor') }}</span>
+                            <span class="rounded-md bg-sky-50 px-2 py-1 text-xs text-sky-700">{{ __('Instructor') }}</span>
                             <form method="POST" action="{{ route('admin.teams.members.detach', [$team, $member]) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="rounded-md px-2 py-1.5 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-red-300"
+                                <button type="submit" class="rounded-md px-2 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100 hover:text-red-600"
                                     aria-label="{{ __('Remove :name', ['name' => $member->profile?->display_name ?? $member->email]) }}">
                                     {{ __('Remove') }}
                                 </button>
@@ -97,23 +97,23 @@
                     @endforelse
                 </div>
 
-                <div data-member-group class="border-t border-zinc-800 py-3">
+                <div data-member-group class="border-t border-zinc-200 py-3">
                     <p class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{{ __('Students') }}</p>
                     @forelse($teamStudents as $member)
-                        <div data-member-row class="flex items-center gap-3 border-b border-zinc-800/80 py-3 last:border-0"
+                        <div data-member-row class="flex items-center gap-3 border-b border-zinc-200 py-3 last:border-0"
                             data-search-text="{{ strtolower(($member->profile?->display_name ?? '').' '.$member->email.' student') }}">
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-zinc-200">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-semibold text-zinc-800">
                                 {{ strtoupper(mb_substr($member->profile?->display_name ?? $member->email, 0, 1)) }}
                             </span>
                             <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-white">{{ $member->profile?->display_name ?? $member->email }}</p>
+                                <p class="truncate text-sm font-medium text-zinc-900">{{ $member->profile?->display_name ?? $member->email }}</p>
                                 <p class="truncate text-xs text-zinc-500">{{ $member->email }}</p>
                             </div>
-                            <span class="rounded-md bg-zinc-800 px-2 py-1 text-xs text-zinc-300">{{ __('Student') }}</span>
+                            <span class="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-700">{{ __('Student') }}</span>
                             <form method="POST" action="{{ route('admin.teams.members.detach', [$team, $member]) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="rounded-md px-2 py-1.5 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-red-300"
+                                <button type="submit" class="rounded-md px-2 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100 hover:text-red-600"
                                     aria-label="{{ __('Remove :name', ['name' => $member->profile?->display_name ?? $member->email]) }}">
                                     {{ __('Remove') }}
                                 </button>
@@ -128,10 +128,10 @@
         @endif
     </section>
 
-    <section class="mb-8 rounded-xl border border-white/5 bg-panel p-5">
+    <section class="mb-8 rounded-xl border border-zinc-200 bg-panel p-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h3 class="text-sm font-semibold text-white">{{ __('Assignments') }}</h3>
+                <h3 class="text-sm font-semibold text-zinc-900">{{ __('Assignments') }}</h3>
                 <p class="mt-1 text-xs text-zinc-500">{{ __('Create and review file assignments for this team.') }}</p>
             </div>
             <a href="{{ route('teams.show', $team) }}"
@@ -141,31 +141,31 @@
         </div>
     </section>
 
-    <section class="rounded-xl border border-white/5 bg-panel p-5">
-        <h3 class="text-sm font-semibold text-white">{{ __('Settings') }}</h3>
+    <section class="rounded-xl border border-zinc-200 bg-panel p-5">
+        <h3 class="text-sm font-semibold text-zinc-900">{{ __('Settings') }}</h3>
         <p class="mt-1 text-xs text-zinc-500">{{ __('Rename or delete this team. Members stay in the system if you delete it.') }}</p>
 
         <form method="POST" action="{{ route('admin.teams.update', $team) }}" class="mt-5 max-w-md space-y-3">
             @csrf
             @method('PUT')
             <div>
-                <label for="rename-team" class="block text-sm font-medium text-zinc-300">{{ __('Team name') }}</label>
+                <label for="rename-team" class="block text-sm font-medium text-zinc-700">{{ __('Team name') }}</label>
                 <input id="rename-team" type="text" name="name" value="{{ old('name', $team->name) }}" required maxlength="120"
-                    class="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
+                    class="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900">
                 @error('name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
-            <button type="submit" class="rounded-lg border border-zinc-600 px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-800">
+            <button type="submit" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-100">
                 {{ __('Save name') }}
             </button>
         </form>
 
-        <form method="POST" action="{{ route('admin.teams.destroy', $team) }}" class="mt-8 border-t border-zinc-800 pt-6"
+        <form method="POST" action="{{ route('admin.teams.destroy', $team) }}" class="mt-8 border-t border-zinc-200 pt-6"
             onsubmit="return confirm(@json(__('Delete this team? Members will remain in the system.')));">
             @csrf
             @method('DELETE')
-            <p class="text-sm font-medium text-red-300">{{ __('Delete team') }}</p>
+            <p class="text-sm font-medium text-red-600">{{ __('Delete team') }}</p>
             <p class="mt-1 text-xs text-zinc-500">{{ __('This cannot be undone.') }}</p>
-            <button type="submit" class="mt-3 rounded-lg border border-red-900/60 px-4 py-2 text-sm text-red-300 hover:bg-red-950/40">
+            <button type="submit" class="mt-3 rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                 {{ __('Delete team') }}
             </button>
         </form>
@@ -175,21 +175,21 @@
         <div class="p-5">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h2 id="assign-dialog-title" class="text-lg font-semibold text-white">{{ __('Assign people') }}</h2>
-                    <p class="mt-1 text-sm text-zinc-400">{{ __('Pick instructors or students to add to :team.', ['team' => $team->name]) }}</p>
+                    <h2 id="assign-dialog-title" class="text-lg font-semibold text-zinc-900">{{ __('Assign people') }}</h2>
+                    <p class="mt-1 text-sm text-zinc-600">{{ __('Pick instructors or students to add to :team.', ['team' => $team->name]) }}</p>
                 </div>
                 <form method="dialog">
-                    <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800">{{ __('Close') }}</button>
+                    <button type="submit" class="rounded-md px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100">{{ __('Close') }}</button>
                 </form>
             </div>
 
-            <div class="mt-5 flex gap-2 border-b border-zinc-800" role="tablist">
+            <div class="mt-5 flex gap-2 border-b border-zinc-200" role="tablist">
                 <button type="button" data-assign-tab="instructors"
-                    class="border-b-2 border-emerald-500 px-3 pb-2 text-sm font-semibold text-white">
+                    class="border-b-2 border-emerald-500 px-3 pb-2 text-sm font-semibold text-zinc-900">
                     {{ __('Instructors') }}
                 </button>
                 <button type="button" data-assign-tab="students"
-                    class="border-b-2 border-transparent px-3 pb-2 text-sm font-semibold text-zinc-500 hover:text-zinc-200">
+                    class="border-b-2 border-transparent px-3 pb-2 text-sm font-semibold text-zinc-500 hover:text-zinc-800">
                     {{ __('Students') }}
                 </button>
             </div>
@@ -198,20 +198,20 @@
                 @csrf
                 <label class="sr-only" for="assign-search">{{ __('Search people') }}</label>
                 <input id="assign-search" type="search" data-member-search placeholder="{{ __('Search by name or email...') }}"
-                    class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-500">
+                    class="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500">
 
-                <div data-assign-panel="instructors" class="max-h-72 space-y-1 overflow-y-auto rounded-lg border border-zinc-800 p-2">
+                <div data-assign-panel="instructors" class="max-h-72 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 p-2">
                     @forelse($availableInstructors as $instructor)
-                        <label data-member-option class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-300 hover:bg-zinc-800">
+                        <label data-member-option class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
                             <input type="checkbox" name="instructor_ids[]" value="{{ $instructor->id }}"
-                                class="rounded border-zinc-600 text-emerald-600 focus:ring-emerald-600">
+                                class="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600">
                             <span class="min-w-0 flex-1 truncate">{{ $instructor->profile?->display_name ?? $instructor->email }}</span>
                             <span class="hidden text-xs text-zinc-500 sm:inline">{{ $instructor->email }}</span>
                         </label>
                     @empty
                         <p class="px-2 py-6 text-center text-sm text-zinc-500">
                             {{ __('No instructor accounts left to add.') }}
-                            <a href="{{ route('admin.users.index', ['tab' => 'users']) }}" class="mt-2 block text-emerald-400 hover:underline">
+                            <a href="{{ route('admin.users.index', ['tab' => 'users']) }}" class="mt-2 block text-emerald-700 hover:underline">
                                 {{ __('Create an instructor under All users') }}
                             </a>
                         </p>
@@ -219,18 +219,18 @@
                     <p data-no-member-matches hidden class="px-2 py-4 text-center text-xs text-zinc-500">{{ __('No matches found.') }}</p>
                 </div>
 
-                <div data-assign-panel="students" hidden class="max-h-72 space-y-1 overflow-y-auto rounded-lg border border-zinc-800 p-2">
+                <div data-assign-panel="students" hidden class="max-h-72 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 p-2">
                     @forelse($availableStudents as $student)
-                        <label data-member-option class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-300 hover:bg-zinc-800">
+                        <label data-member-option class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
                             <input type="checkbox" name="student_ids[]" value="{{ $student->id }}"
-                                class="rounded border-zinc-600 text-emerald-600 focus:ring-emerald-600">
+                                class="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600">
                             <span class="min-w-0 flex-1 truncate">{{ $student->profile?->display_name ?? $student->email }}</span>
                             <span class="hidden text-xs text-zinc-500 sm:inline">{{ $student->email }}</span>
                         </label>
                     @empty
                         <p class="px-2 py-6 text-center text-sm text-zinc-500">
                             {{ __('No student accounts left to add.') }}
-                            <a href="{{ route('admin.users.index', ['tab' => 'users']) }}" class="mt-2 block text-emerald-400 hover:underline">
+                            <a href="{{ route('admin.users.index', ['tab' => 'users']) }}" class="mt-2 block text-emerald-700 hover:underline">
                                 {{ __('Create a student under All users') }}
                             </a>
                         </p>
@@ -262,7 +262,7 @@
             tabButtons.forEach((btn) => {
                 const active = btn.dataset.assignTab === tab;
                 btn.classList.toggle('border-emerald-500', active);
-                btn.classList.toggle('text-white', active);
+                btn.classList.toggle('text-zinc-900', active);
                 btn.classList.toggle('border-transparent', !active);
                 btn.classList.toggle('text-zinc-500', !active);
             });

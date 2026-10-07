@@ -9,9 +9,9 @@
         </p>
         <div class="flex flex-wrap items-center gap-1">
             @if ($paginator->onFirstPage())
-                <span class="rounded-md border border-zinc-800 px-3 py-1.5 text-sm text-zinc-600">{{ __('Previous') }}</span>
+                <span class="rounded-md border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600">{{ __('Previous') }}</span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-emerald-400 hover:bg-zinc-800">{{ __('Previous') }}</a>
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-emerald-700 hover:bg-zinc-100">{{ __('Previous') }}</a>
             @endif
 
             @foreach ($elements as $element)
@@ -21,18 +21,18 @@
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
                         @if ($page == $paginator->currentPage())
-                            <span aria-current="page" class="rounded-md border border-emerald-700/50 bg-emerald-950/50 px-3 py-1.5 text-sm font-medium text-emerald-200">{{ $page }}</span>
+                            <span aria-current="page" class="rounded-md border border-emerald-300 bg-emerald-50/50 px-3 py-1.5 text-sm font-medium text-emerald-200">{{ $page }}</span>
                         @else
-                            <a href="{{ $url }}" class="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 hover:border-zinc-600 hover:text-white" aria-label="{{ __('Go to page :page', ['page' => $page]) }}">{{ $page }}</a>
+                            <a href="{{ $url }}" class="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:border-zinc-300 hover:text-zinc-900" aria-label="{{ __('Go to page :page', ['page' => $page]) }}">{{ $page }}</a>
                         @endif
                     @endforeach
                 @endif
             @endforeach
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-emerald-400 hover:bg-zinc-800">{{ __('Next') }}</a>
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-emerald-700 hover:bg-zinc-100">{{ __('Next') }}</a>
             @else
-                <span class="rounded-md border border-zinc-800 px-3 py-1.5 text-sm text-zinc-600">{{ __('Next') }}</span>
+                <span class="rounded-md border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600">{{ __('Next') }}</span>
             @endif
         </div>
     </nav>

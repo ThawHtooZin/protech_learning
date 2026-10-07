@@ -4,29 +4,52 @@
 
 @section('content')
     <div class="mb-10">
-        <h1 class="text-3xl font-bold tracking-tight text-white">{{ __('Library') }}</h1>
-        <p class="mt-2 max-w-2xl text-zinc-400">{{ __('Pick a course and start learning. Your progress is saved automatically.') }}</p>
+        <h1 class="text-3xl font-bold tracking-tight text-zinc-900">{{ __('Library') }}</h1>
     </div>
 
     <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         @forelse($courses as $course)
-            <a href="{{ route('courses.show', $course) }}" class="group flex flex-col rounded-2xl border border-white/5 bg-panel p-6 transition hover:border-white/10 hover:bg-rail">
-                <div class="flex items-start justify-between gap-3">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-sm font-bold text-white">{{ \Illuminate\Support\Str::substr($course->title, 0, 1) }}</span>
-                    @auth
-                        @if(in_array($course->id, $enrolledIds, true))
-                            <span class="rounded-full bg-emerald-950 px-2.5 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-800/50">{{ __('Enrolled') }}</span>
-                        @endif
-                    @endauth
-                </div>
-                <h2 class="mt-4 text-lg font-semibold text-white group-hover:text-emerald-300">{{ $course->title }}</h2>
-                @if($course->description)
-                    <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-500">{{ \Illuminate\Support\Str::limit($course->description, 140) }}</p>
+            @php
+                $lessonCount = $course->orderedLessons()->count();
+                $minutes = (int) ceil($course->totalDurationSeconds() / 60);
+                $coverUrl = $course->coverUrl();
+                $excerpt = $course->excerpt();
+            @endphp
+            <a href="{{ route('courses.show', $course) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-panel transition hover:border-zinc-300 hover:bg-rail">
+                @if($coverUrl)
+                    <div class="aspect-[2/1] overflow-hidden bg-zinc-100">
+                        <img src="{{ $coverUrl }}" alt="" class="h-full w-full object-cover transition group-hover:scale-[1.02]">
+                    </div>
                 @endif
-                <span class="mt-4 inline-flex items-center text-sm font-medium text-emerald-500 group-hover:text-emerald-400">
-                    {{ __('View course') }}
-                    <svg class="ml-1 h-4 w-4 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </span>
+                <div class="flex flex-1 flex-col p-6">
+                <div class="flex items-start justify-between gap-3">
+                    @unless($coverUrl)
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-sm font-bold text-zinc-900">{{ \Illuminate\Support\Str::substr($course->title, 0, 1) }}</span>
+                    @endunless
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        @if($course->isPrivate())
+                            <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700 ring-1 ring-zinc-300">{{ __('Private') }}</span>
+                        @elseif($course->price_mmk !== null)
+                            <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">{{ number_format($course->price_mmk) }} {{ __('MMK') }}</span>
+                        @endif
+                        @auth
+                            @if(in_array($course->id, $accessIds, true))
+                                <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">{{ __('Access') }}</span>
+                            @endif
+                        @endauth
+                    </div>
+                </div>
+                <h2 class="mt-4 text-lg font-semibold text-zinc-900 group-hover:text-emerald-700">{{ $course->title }}</h2>
+                @if($excerpt)
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-500">{{ $excerpt }}</p>
+                @endif
+                <p class="mt-4 text-xs text-zinc-500">
+                    {{ trans_choice(':count episode|:count episodes', $lessonCount, ['count' => $lessonCount]) }}
+                    @if($minutes > 0)
+                        · {{ $minutes }} {{ __('min') }}
+                    @endif
+                </p>
+                </div>
             </a>
         @empty
             <p class="col-span-full text-zinc-500">{{ __('No courses published yet.') }}</p>

@@ -8,21 +8,21 @@
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
             <p class="text-sm text-zinc-500">{{ __('User') }}</p>
-            <p class="text-lg font-semibold text-white">{{ $user->name }} <span class="text-sm text-zinc-500">({{ $user->email }})</span></p>
+            <p class="text-lg font-semibold text-zinc-900">{{ $user->name }} <span class="text-sm text-zinc-500">({{ $user->email }})</span></p>
         </div>
-        <a href="{{ route('admin.users.show', $user) }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800">
+        <a href="{{ route('admin.users.show', $user) }}" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-800 hover:bg-zinc-100">
             {{ __('Back to user') }}
         </a>
     </div>
 
     <div class="space-y-3">
         @foreach($events as $e)
-            <div class="rounded-xl border border-white/5 bg-panel p-4">
+            <div class="rounded-xl border border-zinc-200 bg-panel p-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="text-sm text-zinc-400">{{ $e->occurred_at?->format('Y-m-d H:i:s') }}</div>
-                    <div class="font-mono text-xs text-zinc-300">{{ $e->event_type }}</div>
+                    <div class="text-sm text-zinc-600">{{ $e->occurred_at?->format('Y-m-d H:i:s') }}</div>
+                    <div class="font-mono text-xs text-zinc-700">{{ $e->event_type }}</div>
                 </div>
-                <div class="mt-2 text-sm text-zinc-300">
+                <div class="mt-2 text-sm text-zinc-700">
                     @if($e->course)
                         <div><span class="text-zinc-500">{{ __('Course:') }}</span> {{ $e->course->title }}</div>
                     @endif
@@ -39,9 +39,9 @@
                 @if(is_array($e->meta) && ! empty($e->meta))
                     <div class="mt-3 grid gap-2 sm:grid-cols-3">
                         @foreach($e->meta as $k => $v)
-                            <div class="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2">
+                            <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
                                 <div class="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{{ $k }}</div>
-                                <div class="mt-1 text-sm text-zinc-200">
+                                <div class="mt-1 text-sm text-zinc-800">
                                     {{ is_bool($v) ? ($v ? 'true' : 'false') : (is_scalar($v) ? $v : json_encode($v)) }}
                                 </div>
                             </div>
