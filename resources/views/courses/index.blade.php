@@ -102,8 +102,10 @@
                         @if($coverUrl)
                             <img src="{{ $coverUrl }}" alt="" class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]">
                         @else
-                            <div class="flex h-full items-center justify-center bg-gradient-to-br from-zinc-100 to-emerald-50">
-                                <span class="font-mono text-3xl font-bold text-emerald-700/80">{{ \Illuminate\Support\Str::substr($course->title, 0, 4) }}</span>
+                            <div class="flex h-full items-center justify-center bg-gradient-to-br from-zinc-100 to-emerald-50 px-5 py-6">
+                                <span class="max-w-full text-center text-lg font-semibold leading-snug text-emerald-800 sm:text-xl">
+                                    {{ $course->title }}
+                                </span>
                             </div>
                         @endif
                     </div>
