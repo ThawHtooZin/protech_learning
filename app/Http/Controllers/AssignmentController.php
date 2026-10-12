@@ -10,6 +10,7 @@ use App\Models\AssignmentAttachment;
 use App\Models\AssignmentSubmission;
 use App\Models\AssignmentSubmissionFile;
 use App\Models\Team;
+use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AssignmentFileService;
 use App\Services\TeamAccessService;
@@ -94,10 +95,8 @@ class AssignmentController extends Controller
             $assignment->load(['submissions.files', 'submissions.user.profile']);
         } elseif ($canSubmit || $user->isStudent()) {
             abort_unless($this->access->isMember($user, $team), 403);
-            $ownSubmission = $assignment->submissions()
-                ->with('files')
-                ->where('user_id', $user->id)
-                ->first();
+            $ownSubmission = $this->markViewed($assignment, $user);
+            $ownSubmission->load('files');
         }
 
         return view('teams.assignments.show', [
@@ -107,6 +106,32 @@ class AssignmentController extends Controller
             'canSubmit' => $canSubmit,
             'roster' => $roster,
             'ownSubmission' => $ownSubmission,
+            'teamNav' => 'assignments',
+        ]);
+    }
+
+    public function studentWork(Request $request, Team $team, Assignment $assignment, User $user): View
+    {
+        $actor = $request->user();
+        $this->assertAssignmentTeam($team, $assignment);
+        abort_unless($this->access->canManageAssignments($actor, $team), 403);
+        abort_unless($user->isStudent() && $this->access->isMember($user, $team), 404);
+
+        $assignment->load(['attachments']);
+
+        $submission = $assignment->submissions()
+            ->with(['files', 'user.profile'])
+            ->where('user_id', $user->id)
+            ->first();
+
+        $workStatus = AssignmentSubmission::workStatusKey($submission, $assignment->due_at);
+
+        return view('teams.assignments.student-work', [
+            'team' => $team,
+            'assignment' => $assignment,
+            'student' => $user->loadMissing('profile'),
+            'submission' => $submission,
+            'workStatus' => $workStatus,
             'teamNav' => 'assignments',
         ]);
     }
@@ -242,7 +267,7 @@ class AssignmentController extends Controller
         ]);
 
         return redirect()
-            ->route('teams.assignments.show', [$team, $assignment])
+            ->route('teams.assignments.student', [$team, $assignment, $submission->user_id])
             ->with('status', __('Submission returned to student.'));
     }
 
@@ -299,5 +324,26 @@ class AssignmentController extends Controller
     private function assertAssignmentTeam(Team $team, Assignment $assignment): void
     {
         abort_unless($assignment->team_id === $team->id, 404);
+    }
+
+    private function markViewed(Assignment $assignment, User $user): AssignmentSubmission
+    {
+        $submission = AssignmentSubmission::query()->firstOrCreate(
+            [
+                'assignment_id' => $assignment->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'status' => SubmissionStatus::NotSubmitted,
+                'viewed_at' => now(),
+            ],
+        );
+
+        if ($submission->viewed_at === null) {
+            $submission->update(['viewed_at' => now()]);
+            $submission->refresh();
+        }
+
+        return $submission;
     }
 }

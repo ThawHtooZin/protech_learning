@@ -35,7 +35,22 @@ class TeamAccessService
         return $user->isInstructor() && $this->isMember($user, $team);
     }
 
+    public function canManageTeam(User $user, Team $team): bool
+    {
+        return $this->canManageStudents($user, $team);
+    }
+
+    public function canManageChannels(User $user, Team $team): bool
+    {
+        return $this->canManageTeam($user, $team);
+    }
+
     public function canPostOnGeneral(User $user, Team $team): bool
+    {
+        return $this->canPostOnChannel($user, $team);
+    }
+
+    public function canPostOnChannel(User $user, Team $team): bool
     {
         if ($user->isAdmin()) {
             return true;
@@ -45,6 +60,11 @@ class TeamAccessService
     }
 
     public function canReplyOnGeneral(User $user, Team $team): bool
+    {
+        return $this->canReplyOnChannel($user, $team);
+    }
+
+    public function canReplyOnChannel(User $user, Team $team): bool
     {
         return $this->canViewTeam($user, $team);
     }

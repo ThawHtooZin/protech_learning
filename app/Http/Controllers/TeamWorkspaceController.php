@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\Team;
+use App\Models\TeamChannel;
 use App\Models\User;
 use App\Services\TeamAccessService;
 use Illuminate\Http\RedirectResponse;
@@ -38,35 +39,47 @@ class TeamWorkspaceController extends Controller
         $user = $request->user();
         abort_unless($this->access->canViewTeam($user, $team), 403);
 
-        $team->load(['users.profile'])
-            ->loadCount('users');
+        $team->load(['users.profile'])->loadCount('users');
 
         $canManageAssignments = $this->access->canManageAssignments($user, $team);
         $canManageStudents = $this->access->canManageStudents($user, $team);
 
         $assignments = $team->assignments()
             ->with(['submissions' => fn ($q) => $q->where('user_id', $user->id)])
-            ->latest()
+            ->orderByRaw('due_at is null')
+            ->orderBy('due_at')
+            ->orderBy('title')
             ->get();
-
-        $tab = $request->string('tab', 'upcoming')->toString();
-        if (! in_array($tab, ['upcoming', 'past_due', 'completed'], true)) {
-            $tab = 'upcoming';
-        }
 
         $ownSubmissionMap = $assignments
             ->mapWithKeys(fn (Assignment $assignment) => [
                 $assignment->id => $assignment->submissions->first(),
             ]);
 
-        $filtered = $this->filterAssignmentsForTab($assignments, $tab, $user, $ownSubmissionMap);
-        $grouped = $this->groupAssignmentsByDueDate($filtered);
+        $isStaffList = $canManageAssignments;
 
-        $counts = [
-            'upcoming' => $this->filterAssignmentsForTab($assignments, 'upcoming', $user, $ownSubmissionMap)->count(),
-            'past_due' => $this->filterAssignmentsForTab($assignments, 'past_due', $user, $ownSubmissionMap)->count(),
-            'completed' => $this->filterAssignmentsForTab($assignments, 'completed', $user, $ownSubmissionMap)->count(),
-        ];
+        $tab = null;
+        $counts = [];
+        $grouped = collect();
+        $flatAssignments = collect();
+
+        if ($isStaffList) {
+            $flatAssignments = $assignments;
+        } else {
+            $tab = $request->string('tab', 'upcoming')->toString();
+            if (! in_array($tab, ['upcoming', 'past_due', 'completed'], true)) {
+                $tab = 'upcoming';
+            }
+
+            $filtered = $this->filterAssignmentsForTab($assignments, $tab, $user, $ownSubmissionMap);
+            $grouped = $this->groupAssignmentsByDueDate($filtered);
+
+            $counts = [
+                'upcoming' => $this->filterAssignmentsForTab($assignments, 'upcoming', $user, $ownSubmissionMap)->count(),
+                'past_due' => $this->filterAssignmentsForTab($assignments, 'past_due', $user, $ownSubmissionMap)->count(),
+                'completed' => $this->filterAssignmentsForTab($assignments, 'completed', $user, $ownSubmissionMap)->count(),
+            ];
+        }
 
         $teamNav = 'assignments';
 
@@ -75,6 +88,8 @@ class TeamWorkspaceController extends Controller
             'canManageAssignments',
             'canManageStudents',
             'ownSubmissionMap',
+            'isStaffList',
+            'flatAssignments',
             'tab',
             'grouped',
             'counts',
@@ -82,43 +97,91 @@ class TeamWorkspaceController extends Controller
         ));
     }
 
-    public function general(Request $request, Team $team): View
+    public function general(Request $request, Team $team): RedirectResponse
+    {
+        abort_unless($this->access->canViewTeam($request->user(), $team), 403);
+
+        $channel = $team->generalChannel();
+        abort_unless($channel, 404);
+
+        return redirect()->route('teams.channels.show', [$team, $channel]);
+    }
+
+    public function channel(Request $request, Team $team, TeamChannel $channel): View
     {
         $user = $request->user();
         abort_unless($this->access->canViewTeam($user, $team), 403);
+        abort_unless($channel->team_id === $team->id, 404);
 
-        $team->load(['users.profile'])->loadCount('users');
+        $team->loadCount('users');
 
-        $posts = $team->posts()
+        $posts = $channel->posts()
             ->whereNull('parent_id')
-            ->with(['user.profile', 'replies.user.profile'])
+            ->with([
+                'user.profile',
+                'reactions',
+                'replies.user.profile',
+                'replies.reactions',
+            ])
             ->latest()
             ->get();
 
-        $canManageStudents = $this->access->canManageStudents($user, $team);
         $canManageAssignments = $this->access->canManageAssignments($user, $team);
-        $canPostOnGeneral = $this->access->canPostOnGeneral($user, $team);
-        $canReplyOnGeneral = $this->access->canReplyOnGeneral($user, $team);
+        $canPostOnChannel = $this->access->canPostOnChannel($user, $team);
+        $canReplyOnChannel = $this->access->canReplyOnChannel($user, $team);
+        $reactionEmojis = \App\Models\TeamPostReaction::ALLOWED;
 
-        $students = collect();
-        if ($canManageStudents) {
-            $students = User::query()
-                ->with('profile')
-                ->where('role', UserRole::Student)
-                ->orderBy('email')
-                ->get();
+        $teamNav = 'channel-'.$channel->id;
+
+        return view('teams.channel', compact(
+            'team',
+            'channel',
+            'canManageAssignments',
+            'canPostOnChannel',
+            'canReplyOnChannel',
+            'posts',
+            'reactionEmojis',
+            'teamNav',
+        ));
+    }
+
+    public function manage(Request $request, Team $team): View
+    {
+        $user = $request->user();
+        abort_unless($this->access->canManageTeam($user, $team), 403);
+
+        $tab = $request->string('tab', 'channels')->toString();
+        if (! in_array($tab, ['channels', 'members'], true)) {
+            $tab = 'channels';
         }
 
-        $teamNav = 'general';
+        $team->load(['users.profile', 'channels'])->loadCount('users');
 
-        return view('teams.general', compact(
+        $channels = $team->channels->sortBy([
+            ['is_general', 'desc'],
+            ['sort_order', 'asc'],
+            ['name', 'asc'],
+        ])->values();
+
+        $members = $team->users->sortBy(fn (User $m) => $m->profile?->display_name ?? $m->email)->values();
+
+        $students = User::query()
+            ->with('profile')
+            ->where('role', UserRole::Student)
+            ->orderBy('email')
+            ->get();
+
+        $memberIds = $team->users->pluck('id');
+        $availableStudents = $students->reject(fn (User $u) => $memberIds->contains($u->id))->values();
+
+        $teamNav = 'manage';
+
+        return view('teams.manage', compact(
             'team',
-            'canManageStudents',
-            'canManageAssignments',
-            'canPostOnGeneral',
-            'canReplyOnGeneral',
-            'students',
-            'posts',
+            'tab',
+            'channels',
+            'members',
+            'availableStudents',
             'teamNav',
         ));
     }
@@ -136,7 +199,7 @@ class TeamWorkspaceController extends Controller
         $team->users()->syncWithoutDetaching($validated['student_ids']);
 
         return redirect()
-            ->route('teams.general', $team)
+            ->route('teams.manage', ['team' => $team, 'tab' => 'members'])
             ->with('status', __('Students added.'));
     }
 
@@ -152,7 +215,7 @@ class TeamWorkspaceController extends Controller
         $team->users()->detach($member->id);
 
         return redirect()
-            ->route('teams.general', $team)
+            ->route('teams.manage', ['team' => $team, 'tab' => 'members'])
             ->with('status', __('Member removed.'));
     }
 
@@ -179,7 +242,6 @@ class TeamWorkspaceController extends Controller
                 };
             }
 
-            // Instructors / admins
             return match ($tab) {
                 'completed' => $isClosed,
                 'past_due' => ! $isClosed && $isPastDue,

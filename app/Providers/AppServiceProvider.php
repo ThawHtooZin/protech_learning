@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Team;
 use App\Services\MentionRenderer;
+use App\Services\TeamAccessService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -44,6 +46,25 @@ class AppServiceProvider extends ServiceProvider
             if ($latest) {
                 $view->with('notiCatchup', $latest);
             }
+        });
+
+        View::composer('teams._sidebar', function ($view): void {
+            $team = $view->getData()['team'] ?? null;
+            if (! $team instanceof Team) {
+                return;
+            }
+
+            if (! $team->relationLoaded('channels')) {
+                $team->load(['channels' => fn ($q) => $q->orderByDesc('is_general')->orderBy('sort_order')->orderBy('name')]);
+            }
+
+            $user = auth()->user();
+            $access = app(TeamAccessService::class);
+
+            $view->with([
+                'sidebarChannels' => $team->channels,
+                'canManageTeam' => $user ? $access->canManageTeam($user, $team) : false,
+            ]);
         });
     }
 }

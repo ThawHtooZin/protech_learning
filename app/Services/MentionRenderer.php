@@ -53,4 +53,46 @@ class MentionRenderer
 
         return nl2br($html ?? $text, false);
     }
+
+    /**
+     * Highlight @mentions inside already-sanitized HTML (does not escape markup).
+     */
+    public function enrichHtml(string $html, string $sourceType, int|string $sourceId, bool $broadcastAll = false): string
+    {
+        preg_match_all('/@([a-zA-Z0-9_]{2,32})/', $html, $matches);
+        $handles = array_unique($matches[1] ?? []);
+        if ($handles === []) {
+            return $html;
+        }
+
+        $profiles = Profile::query()
+            ->whereIn('handle', $handles)
+            ->get()
+            ->keyBy('handle');
+
+        $i = 0;
+
+        return preg_replace_callback(
+            '/@([a-zA-Z0-9_]{2,32})/',
+            function (array $m) use ($sourceType, $sourceId, &$i, $profiles, $broadcastAll): string {
+                $handle = $m[1];
+                $anchorId = 'mt-'.$sourceType.'-'.$sourceId.'-'.$i;
+                $i++;
+
+                if ($broadcastAll && strcasecmp($handle, 'all') === 0) {
+                    return '<span id="'.e($anchorId).'" class="mention-link font-medium text-emerald-700">@all</span>';
+                }
+
+                $profile = $profiles->get($handle);
+                if (! $profile) {
+                    return '@'.e($handle);
+                }
+
+                $url = route('profiles.show', $profile);
+
+                return '<a href="'.e($url).'" id="'.e($anchorId).'" class="mention-link font-medium text-emerald-700 underline decoration-emerald-600/40 underline-offset-2 hover:text-emerald-800">@'.e($handle).'</a>';
+            },
+            $html
+        ) ?? $html;
+    }
 }

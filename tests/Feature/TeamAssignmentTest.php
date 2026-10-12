@@ -68,7 +68,7 @@ class TeamAssignmentTest extends TestCase
             ->post(route('teams.assignments.return', [$team, $assignment, $submission]), [
                 'feedback' => 'Nice work — fix the README.',
             ])
-            ->assertRedirect(route('teams.assignments.show', [$team, $assignment]));
+            ->assertRedirect(route('teams.assignments.student', [$team, $assignment, $student]));
 
         $this->assertSame(SubmissionStatus::Returned, $submission->fresh()->status);
         $this->assertSame('Nice work — fix the README.', $submission->fresh()->feedback);
@@ -113,7 +113,7 @@ class TeamAssignmentTest extends TestCase
             ->post(route('teams.members.attach', $team), [
                 'student_ids' => [$outsider->id],
             ])
-            ->assertRedirect(route('teams.general', $team));
+            ->assertRedirect(route('teams.manage', ['team' => $team, 'tab' => 'members']));
 
         $this->assertDatabaseHas('team_user', [
             'team_id' => $team->id,
@@ -122,7 +122,7 @@ class TeamAssignmentTest extends TestCase
 
         $this->actingAs($instructor)
             ->delete(route('teams.members.detach', [$team, $student]))
-            ->assertRedirect(route('teams.general', $team));
+            ->assertRedirect(route('teams.manage', ['team' => $team, 'tab' => 'members']));
 
         $this->assertDatabaseMissing('team_user', [
             'team_id' => $team->id,

@@ -79,61 +79,55 @@
         </section>
 
         <section class="rounded-xl border border-zinc-200 bg-panel">
-            <div class="border-b border-zinc-200 px-5 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 px-5 py-4">
                 <h2 class="text-sm font-semibold text-zinc-900">{{ __('Student work') }}</h2>
+                <p class="text-xs text-zinc-500">{{ trans_choice(':count student|:count students', $roster->count(), ['count' => $roster->count()]) }}</p>
             </div>
             @if($roster->isEmpty())
                 <p class="px-5 py-8 text-center text-sm text-zinc-500">{{ __('No students on this team yet.') }}</p>
             @else
-                <div class="divide-y divide-zinc-800">
-                    @foreach($roster as $student)
-                        @php
-                            $submission = $assignment->submissions->firstWhere('user_id', $student->id);
-                            $rowStatus = $submission?->status->value ?? 'not_submitted';
-                        @endphp
-                        <div class="px-5 py-4">
-                            <div>
-                                <p class="text-sm font-medium text-zinc-900">{{ $student->profile?->display_name ?? $student->email }}</p>
-                                <p class="text-xs text-zinc-500">
-                                    @if($rowStatus === 'not_submitted')
-                                        {{ __('Not turned in') }}
-                                    @elseif($rowStatus === 'returned')
-                                        {{ __('Returned') }}
-                                        @if($submission?->returned_at) · {{ $submission->returned_at->diffForHumans() }} @endif
-                                    @else
-                                        {{ __('Turned in') }}
-                                        @if($submission?->submitted_at) · {{ $submission->submitted_at->diffForHumans() }} @endif
-                                    @endif
-                                </p>
-                            </div>
-
-                            @if($submission && $submission->files->isNotEmpty())
-                                <ul class="mt-3 flex flex-wrap gap-2">
-                                    @foreach($submission->files as $file)
-                                        <li>
-                                            <a href="{{ route('teams.assignments.files.download', [$team, $assignment, $submission, $file]) }}"
-                                                class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-emerald-700 hover:border-zinc-500">
-                                                {{ $file->original_name }}
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @endif
-
-                            @if($submission && in_array($rowStatus, ['submitted', 'returned'], true))
-                                <form method="POST" action="{{ route('teams.assignments.return', [$team, $assignment, $submission]) }}"
-                                    class="mt-3 max-w-xl space-y-2">
-                                    @csrf
-                                    <label class="block text-xs font-medium text-zinc-600" for="feedback-{{ $submission->id }}">{{ __('Feedback') }}</label>
-                                    <textarea id="feedback-{{ $submission->id }}" name="feedback" rows="2"
-                                        class="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900">{{ old('feedback', $submission->feedback) }}</textarea>
-                                    <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500">
-                                        {{ __('Return') }}
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                    @endforeach
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="border-b border-zinc-200 bg-rail text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                            <tr>
+                                <th class="px-5 py-3 font-semibold">{{ __('Name') }}</th>
+                                <th class="px-5 py-3 font-semibold">{{ __('Status') }}</th>
+                                <th class="px-5 py-3 font-semibold">{{ __('Files') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-200">
+                            @foreach($roster as $student)
+                                @php
+                                    $submission = $assignment->submissions->firstWhere('user_id', $student->id);
+                                    $workKey = \App\Models\AssignmentSubmission::workStatusKey($submission, $assignment->due_at);
+                                    $statusLabel = match ($workKey) {
+                                        'returned' => __('Returned'),
+                                        'turned_in' => __('Turned in'),
+                                        'turned_in_late' => __('Turned in late'),
+                                        'late' => __('Late'),
+                                        'viewed' => __('Viewed'),
+                                        default => __('Not turned in'),
+                                    };
+                                    $statusClass = match ($workKey) {
+                                        'returned', 'turned_in' => 'text-emerald-700',
+                                        'turned_in_late', 'late' => 'text-rose-600',
+                                        'viewed' => 'text-sky-700',
+                                        default => 'text-zinc-500',
+                                    };
+                                @endphp
+                                <tr class="cursor-pointer transition hover:bg-rail"
+                                    onclick="window.location='{{ route('teams.assignments.student', [$team, $assignment, $student]) }}'">
+                                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                                        {{ $student->profile?->display_name ?? $student->email }}
+                                    </td>
+                                    <td class="px-5 py-3.5 {{ $statusClass }}">{{ $statusLabel }}</td>
+                                    <td class="px-5 py-3.5 text-zinc-500">
+                                        {{ $submission?->files->count() ?? 0 }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             @endif
         </section>

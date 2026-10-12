@@ -7,6 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', $team->name) — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>[x-cloak]{display:none!important}</style>
+    @stack('styles')
 </head>
 <body class="flex min-h-dvh flex-col bg-canvas text-zinc-900 antialiased">
     @include('partials.learn-header')
@@ -38,5 +40,6 @@
             setTimeout(function () { el.classList.remove('mention-flash'); }, 3000);
         });
     </script>
+    @stack('scripts')
 </body>
 </html>

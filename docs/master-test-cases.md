@@ -59,7 +59,8 @@ php artisan test --filter='CourseAccessModelTest|CourseCommerceUxTest|TeamAssign
 | `CourseAccessModelTest` | Public/private, purchase, team grant, unlisted 404 |
 | `CourseCommerceUxTest` | Banks in Buy modal, cover, grant/revoke notis, catch-up |
 | `TeamAssignmentTest` | Assignments |
-| `TeamGeneralPostTest` | General posts / mentions |
+| `TeamGeneralPostTest` | Channel posts / mentions |
+| `TeamManageChannelsTest` | Manage team, channels, viewed status |
 | `LessonSequenceGatingTest` | Enrollment required for lessons |
 | `LocaleSwitchTest` | EN/MY switch |
 
@@ -214,7 +215,7 @@ php artisan test --filter='CourseAccessModelTest|CourseCommerceUxTest|TeamAssign
 | # | Steps | Expected | P/F |
 | --- | --- | --- | --- |
 | A120 | Open any published lesson without enrollment | OK (admin bypass) | |
-| A121 | Manage any team assignments / General | OK | |
+| A121 | Manage any team assignments / channels / Manage team | OK | |
 | A122 | Notifications / profile | Work | |
 | A123 | Flash save → ProtechAlert toast | Toast (not only old banner) | |
 
@@ -296,28 +297,32 @@ Must be on test team.
 | I2 | Learner nav | Browse, Forum, Teams, Dashboard, Notifications, Profile | |
 | I3 | Teams index | Only own teams | |
 | I4 | Other team | **403** | |
-| I10 | Team sidebar | Assignments + Channels → General | |
+| I10 | Team sidebar | Assignments + channels + **Manage team** (staff) | |
 | I20 | Create assignment (+ optional resources) | Created | |
-| I21 | Tabs Upcoming / Past due / Completed | Filter OK | |
+| I21 | Staff assignment list | Flat title + due only; **no** Upcoming/Past due/Completed tabs | |
 | I22 | Edit assignment | Updates | |
-| I23 | Student turns in → download | Works | |
-| I24 | Return + feedback | Student sees feedback | |
+| I23 | Student turns in → Student work table → row detail | Status + files | |
+| I24 | Return + feedback on student detail | Student sees feedback | |
 | I25 | Close | Student cannot upload | |
 | I26 | Delete assignment | Removed | |
 | I27 | Create on team not member | **403** | |
-| I30 | General → add/remove students | Own team only | |
-| I40 | General post | Appears | |
+| I28 | Student opens assignment (no turn in) | Staff table shows **Viewed** | |
+| I30 | Manage team → Members add/remove | Own team only; searchable table | |
+| I31 | Manage team → Channels add/rename/delete | Custom only; General locked | |
+| I32 | Student opens Manage team | **403** | |
+| I40 | Channel post (subject + body) | Card with subject; on that channel | |
 | I41 | `@all` | Members notified; author not | |
 | I42 | `@studentHandle` | That member notified; outsider not | |
 | I43 | Student top-level post | Not allowed | |
+| I44 | React / unreact on post | Count toggles | |
 
 ---
 
-## 15. Student — teams (assignments + General)
+## 15. Student — teams (assignments + channels)
 
 | # | Steps | Expected | P/F |
 | --- | --- | --- | --- |
-| T1 | Assignments list | Sees open work | |
+| T1 | Assignments list | Tabs Upcoming / Past due / Completed | |
 | T2 | Download resources | OK | |
 | T3 | Attach any type (e.g. `.zip`, `.py`) → Turn in | Submitted | |
 | T4 | Replace while open | Allowed | |
@@ -325,11 +330,13 @@ Must be on test team.
 | T6 | After close | Upload blocked | |
 | T7 | Other student’s file URL | **403** | |
 | T8 | Create assignment | No / **403** | |
-| T10 | Read General | Visible | |
-| T11 | Reply | Appears | |
+| T9 | Manage team / add members / add channels | **403** / not in sidebar | |
+| T10 | Read General + custom channels | Visible | |
+| T11 | Reply via inline bar | Appears under post | |
 | T12 | Reply `@instructor` / `@all` | Notifies | |
 | T13 | Top-level post | Not allowed | |
 | T14 | Full navbar on team pages | Present | |
+| T15 | Add / remove reaction | Badge count updates | |
 
 ---
 

@@ -133,6 +133,8 @@ Short smoke (same as master §19):
 | [i18n-map.md](./i18n-map.md) | Adding/translating UI strings |
 | [srs-team-assignments.md](./srs-team-assignments.md) | Assignment rules in detail |
 | [flows/phase-4-epic-1-team-assignments-sequence.md](./flows/phase-4-epic-1-team-assignments-sequence.md) | Assignment sequence |
+| [flows/phase-4-epic-4-teams-manage-channels-sequence.md](./flows/phase-4-epic-4-teams-manage-channels-sequence.md) | Manage team, channels, student-work table |
+| [flows/phase-4-epic-5-channel-posts-reactions-sequence.md](./flows/phase-4-epic-5-channel-posts-reactions-sequence.md) | Teams-style posts, replies, reactions |
 | [protech-learning-system-prd.md](./protech-learning-system-prd.md) | Full product requirements |
 
 ---

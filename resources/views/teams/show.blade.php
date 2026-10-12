@@ -17,75 +17,102 @@
         @endif
     </div>
 
-    <div class="mb-6 flex flex-wrap items-center gap-4 border-b border-zinc-200" data-compact-my>
-        @php
-            $tabs = [
-                'upcoming' => __('Upcoming'),
-                'past_due' => __('Past due'),
-                'completed' => __('Completed'),
-            ];
-        @endphp
-        @foreach($tabs as $key => $label)
-            <a href="{{ route('teams.show', ['team' => $team, 'tab' => $key]) }}"
-                class="relative pb-3 text-sm font-medium transition {{ $tab === $key ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700' }}">
-                {{ $label }}
-                @if(($counts[$key] ?? 0) > 0)
-                    <span class="ml-1 text-xs text-zinc-500">({{ $counts[$key] }})</span>
+    @if($isStaffList)
+        @if($flatAssignments->isEmpty())
+            <div class="rounded-xl border border-zinc-200 bg-panel px-6 py-16 text-center">
+                <p class="text-sm text-zinc-600">{{ __('No assignments yet.') }}</p>
+                @if($canManageAssignments)
+                    <a href="{{ route('teams.assignments.create', $team) }}" class="mt-3 inline-block text-sm text-emerald-700 hover:underline">
+                        {{ __('Create the first assignment') }}
+                    </a>
                 @endif
-                @if($tab === $key)
-                    <span class="absolute inset-x-0 -bottom-px h-0.5 bg-emerald-500"></span>
-                @endif
-            </a>
-        @endforeach
-    </div>
-
-    @if($grouped->isEmpty())
-        <div class="rounded-xl border border-zinc-200 bg-panel px-6 py-16 text-center">
-            <p class="text-sm text-zinc-600">{{ __('No assignments yet.') }}</p>
-            @if($canManageAssignments && $tab === 'upcoming')
-                <a href="{{ route('teams.assignments.create', $team) }}" class="mt-3 inline-block text-sm text-emerald-700 hover:underline">
-                    {{ __('Create the first assignment') }}
-                </a>
-            @endif
-        </div>
+            </div>
+        @else
+            <ul class="overflow-hidden rounded-xl border border-zinc-200 bg-panel">
+                @foreach($flatAssignments as $assignment)
+                    @php $duePast = $assignment->due_at && $assignment->due_at->isPast(); @endphp
+                    <li class="border-b border-zinc-200 last:border-0">
+                        <a href="{{ route('teams.assignments.show', [$team, $assignment]) }}"
+                            class="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-rail">
+                            <p class="min-w-0 truncate text-base font-semibold text-zinc-900">{{ $assignment->title }}</p>
+                            <p class="shrink-0 text-sm {{ $duePast && $assignment->isOpen() ? 'text-rose-600' : 'text-zinc-500' }}">
+                                @if($assignment->due_at)
+                                    {{ __('Due :date', ['date' => $assignment->due_at->timezone(config('app.timezone'))->format('M j, Y g:i A')]) }}
+                                @else
+                                    {{ __('No due date') }}
+                                @endif
+                            </p>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
     @else
-        <div class="space-y-8">
-            @foreach($grouped as $dateLabel => $items)
-                <section>
-                    <h2 class="mb-3 text-sm font-medium text-zinc-600">{{ $dateLabel }}</h2>
-                    <ul class="space-y-3">
-                        @foreach($items as $assignment)
-                            @php
-                                $own = $ownSubmissionMap[$assignment->id] ?? null;
-                                $duePast = $assignment->due_at && $assignment->due_at->isPast();
-                            @endphp
-                            <li>
-                                <a href="{{ route('teams.assignments.show', [$team, $assignment]) }}"
-                                    class="block rounded-xl border border-zinc-200 bg-panel px-5 py-4 transition hover:border-zinc-300 hover:bg-rail">
-                                    <p class="truncate text-base font-semibold text-zinc-900">{{ $assignment->title }}</p>
-                                    <p class="mt-1 text-sm {{ $duePast && $assignment->isOpen() ? 'text-rose-600' : 'text-zinc-500' }}">
-                                        @if($assignment->due_at)
-                                            {{ __('Due at :time', ['time' => $assignment->due_at->timezone(config('app.timezone'))->format('g:i A')]) }}
-                                        @else
-                                            {{ __('No due date') }}
-                                        @endif
-                                        @if(auth()->user()->isStudent() && $own)
-                                            ·
-                                            @if($own->status->value === 'returned')
-                                                {{ __('Returned') }}
-                                            @elseif($own->status->value === 'submitted')
-                                                {{ __('Turned in') }}
-                                            @endif
-                                        @elseif($assignment->isClosed())
-                                            · {{ __('Closed') }}
-                                        @endif
-                                    </p>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </section>
+        <div class="mb-6 flex flex-wrap items-center gap-4 border-b border-zinc-200" data-compact-my>
+            @php
+                $tabs = [
+                    'upcoming' => __('Upcoming'),
+                    'past_due' => __('Past due'),
+                    'completed' => __('Completed'),
+                ];
+            @endphp
+            @foreach($tabs as $key => $label)
+                <a href="{{ route('teams.show', ['team' => $team, 'tab' => $key]) }}"
+                    class="relative pb-3 text-sm font-medium transition {{ $tab === $key ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700' }}">
+                    {{ $label }}
+                    @if(($counts[$key] ?? 0) > 0)
+                        <span class="ml-1 text-xs text-zinc-500">({{ $counts[$key] }})</span>
+                    @endif
+                    @if($tab === $key)
+                        <span class="absolute inset-x-0 -bottom-px h-0.5 bg-emerald-500"></span>
+                    @endif
+                </a>
             @endforeach
         </div>
+
+        @if($grouped->isEmpty())
+            <div class="rounded-xl border border-zinc-200 bg-panel px-6 py-16 text-center">
+                <p class="text-sm text-zinc-600">{{ __('No assignments yet.') }}</p>
+            </div>
+        @else
+            <div class="space-y-8">
+                @foreach($grouped as $dateLabel => $items)
+                    <section>
+                        <h2 class="mb-3 text-sm font-medium text-zinc-600">{{ $dateLabel }}</h2>
+                        <ul class="space-y-3">
+                            @foreach($items as $assignment)
+                                @php
+                                    $own = $ownSubmissionMap[$assignment->id] ?? null;
+                                    $duePast = $assignment->due_at && $assignment->due_at->isPast();
+                                @endphp
+                                <li>
+                                    <a href="{{ route('teams.assignments.show', [$team, $assignment]) }}"
+                                        class="block rounded-xl border border-zinc-200 bg-panel px-5 py-4 transition hover:border-zinc-300 hover:bg-rail">
+                                        <p class="truncate text-base font-semibold text-zinc-900">{{ $assignment->title }}</p>
+                                        <p class="mt-1 text-sm {{ $duePast && $assignment->isOpen() ? 'text-rose-600' : 'text-zinc-500' }}">
+                                            @if($assignment->due_at)
+                                                {{ __('Due at :time', ['time' => $assignment->due_at->timezone(config('app.timezone'))->format('g:i A')]) }}
+                                            @else
+                                                {{ __('No due date') }}
+                                            @endif
+                                            @if($own)
+                                                ·
+                                                @if($own->status->value === 'returned')
+                                                    {{ __('Returned') }}
+                                                @elseif($own->status->value === 'submitted')
+                                                    {{ __('Turned in') }}
+                                                @endif
+                                            @elseif($assignment->isClosed())
+                                                · {{ __('Closed') }}
+                                            @endif
+                                        </p>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endforeach
+            </div>
+        @endif
     @endif
 @endsection
