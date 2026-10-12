@@ -16,6 +16,22 @@ html {
     --color-rail: #ffffff;
     --color-header: #ffffff;
     --color-panel: #ffffff;
+
+    /*
+     * Protech brand (logo / sister site): primary blue with teal undertones.
+     * Remap emerald-* so existing UI picks up the brand without a full class rewrite.
+     */
+    --color-emerald-50: #eff8ff;
+    --color-emerald-100: #dbeefe;
+    --color-emerald-200: #bfdbfe;
+    --color-emerald-300: #93c5fd;
+    --color-emerald-400: #5aaef9;
+    --color-emerald-500: #3b9ef5;
+    --color-emerald-600: #1d8cf8;
+    --color-emerald-700: #1570d4;
+    --color-emerald-800: #1e4d8c;
+    --color-emerald-900: #1e3a5f;
+    --color-emerald-950: #0f2440;
 }
 
 /*

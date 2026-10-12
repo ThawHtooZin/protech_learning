@@ -29,7 +29,7 @@ use App\Http\Controllers\TeamPostController;
 use App\Http\Controllers\TeamWorkspaceController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('courses.index'))->name('home');
+Route::get('/', [CourseCatalogController::class, 'home'])->name('home');
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.switch');
 

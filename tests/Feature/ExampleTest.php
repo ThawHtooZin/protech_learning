@@ -9,11 +9,11 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_home_redirects_to_course_catalog(): void
+    public function test_home_page_loads(): void
     {
-        $response = $this->get('/');
+        $response = $this->get(route('home'));
 
-        $response->assertRedirect(route('courses.index'));
+        $response->assertOk();
     }
 
     public function test_course_catalog_page_loads(): void
@@ -21,5 +21,6 @@ class ExampleTest extends TestCase
         $response = $this->get(route('courses.index'));
 
         $response->assertOk();
+        $response->assertSee(__('All courses'), false);
     }
 }

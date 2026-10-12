@@ -7,7 +7,7 @@
         <div class="rounded-2xl border border-zinc-200 bg-panel p-8">
             <h1 class="text-center text-2xl font-bold text-zinc-900">{{ __('Account pending approval') }}</h1>
             <p class="mt-2 text-center text-sm text-zinc-500">
-                {{ __('Your account was created successfully, but an admin must approve it before you can use Protech LMS.') }}
+                {{ __('Your account was created successfully, but an admin must approve it before you can use Protech Learning.') }}
             </p>
 
             <div class="mt-8 text-center">

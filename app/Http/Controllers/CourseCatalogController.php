@@ -18,7 +18,24 @@ class CourseCatalogController extends Controller
         private LessonAccessService $lessonAccess,
     ) {}
 
+    public function home(Request $request): View
+    {
+        [$courses, $accessIds] = $this->catalogCourses($request);
+
+        return view('home', compact('courses', 'accessIds'));
+    }
+
     public function index(Request $request): View
+    {
+        [$courses, $accessIds] = $this->catalogCourses($request);
+
+        return view('courses.index', compact('courses', 'accessIds'));
+    }
+
+    /**
+     * @return array{0: \Illuminate\Database\Eloquent\Collection<int, Course>, 1: list<int>}
+     */
+    private function catalogCourses(Request $request): array
     {
         $courses = Course::query()
             ->where('is_published', true)
@@ -30,7 +47,7 @@ class CourseCatalogController extends Controller
                     });
             })
             ->with(['modules' => fn ($q) => $q->orderBy('sort_order'), 'modules.lessons' => fn ($q) => $q->orderBy('sort_order')])
-            ->orderBy('title')
+            ->orderBy('id')
             ->get();
 
         $accessIds = [];
@@ -43,7 +60,7 @@ class CourseCatalogController extends Controller
             }
         }
 
-        return view('courses.index', compact('courses', 'accessIds'));
+        return [$courses, $accessIds];
     }
 
     public function show(Request $request, Course $course): View

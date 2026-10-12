@@ -1,13 +1,15 @@
 <header class="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur-md">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3 sm:px-6 lg:px-8">
         <div class="flex items-center gap-8">
-            <a href="{{ route('courses.index') }}" class="group flex items-center gap-2">
-                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-lg shadow-emerald-200/60">P</span>
-                <span class="text-base font-semibold tracking-tight text-zinc-900 group-hover:text-emerald-700">{{ config('app.name') }}</span>
+            <a href="{{ route('home') }}" class="group flex items-center gap-2.5">
+                <img src="{{ asset('images/protech-logo.jpg') }}" alt="" class="h-9 w-9 object-contain">
+                <span class="text-base font-semibold tracking-tight text-zinc-900 group-hover:text-emerald-700">
+                    <span class="font-bold">Protech</span> Learning
+                </span>
             </a>
             <nav class="hidden items-center gap-1 md:flex" data-compact-my>
                 <a href="{{ route('courses.index') }}"
-                    class="rounded-md px-3 py-2 text-sm font-medium {{ request()->routeIs('courses.index') || request()->routeIs('courses.show') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">{{ __('Browse') }}</a>
+                    class="rounded-md px-3 py-2 text-sm font-medium {{ request()->routeIs('courses.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">{{ __('Courses') }}</a>
                 <a href="{{ route('forums.index') }}"
                     class="rounded-md px-3 py-2 text-sm font-medium {{ request()->routeIs('forums.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">{{ __('Forum') }}</a>
                 @auth
@@ -53,7 +55,7 @@
     </div>
     {{-- Mobile nav --}}
     <div class="flex border-t border-zinc-200 px-4 py-2 md:hidden" data-compact-my>
-        <a href="{{ route('courses.index') }}" class="flex-1 rounded-md py-2 text-center text-xs font-medium {{ request()->routeIs('courses.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600' }}">{{ __('Browse') }}</a>
+        <a href="{{ route('courses.index') }}" class="flex-1 rounded-md py-2 text-center text-xs font-medium {{ request()->routeIs('courses.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600' }}">{{ __('Courses') }}</a>
         <a href="{{ route('forums.index') }}" class="flex-1 rounded-md py-2 text-center text-xs font-medium {{ request()->routeIs('forums.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600' }}">{{ __('Forum') }}</a>
         @auth
             <a href="{{ route('teams.index') }}" class="flex-1 rounded-md py-2 text-center text-xs font-medium {{ request()->routeIs('teams.*') ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600' }}">{{ __('Teams') }}</a>

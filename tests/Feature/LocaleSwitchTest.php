@@ -35,7 +35,7 @@ class LocaleSwitchTest extends TestCase
 
         $this->get(route('courses.index'))
             ->assertOk()
-            ->assertSee('Browse', false)
+            ->assertSee('Courses', false)
             ->assertDontSee('locale-my', false);
     }
 }

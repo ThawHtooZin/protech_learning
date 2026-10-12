@@ -11,7 +11,7 @@
     <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="min-h-full bg-zinc-50 text-zinc-900 antialiased">
-    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(16,185,129,0.08),transparent)]"></div>
+    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(29,140,248,0.10),transparent)]"></div>
 
     @include('partials.learn-header')
 
@@ -41,7 +41,7 @@
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-zinc-600 sm:flex-row sm:px-6 lg:px-8">
             <p>{{ config('app.name') }} — {{ __('Learn at your pace.') }}</p>
             <nav class="flex flex-wrap items-center justify-center gap-4" data-compact-my>
-                <a href="{{ route('courses.index') }}" class="hover:text-emerald-700">{{ __('Browse') }}</a>
+                <a href="{{ route('courses.index') }}" class="hover:text-emerald-700">{{ __('Courses') }}</a>
                 <a href="{{ route('forums.index') }}" class="hover:text-emerald-700">{{ __('Forum') }}</a>
                 @include('partials.locale-switcher')
             </nav>
