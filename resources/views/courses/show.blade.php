@@ -3,107 +3,188 @@
 @section('title', $course->title)
 
 @section('content')
+    @php
+        $allLessons = $course->modules->flatMap(fn ($m) => $m->lessons)->values();
+        $completedCount = $completedLessonIds->count();
+        $nextLesson = $hasAccess
+            ? ($allLessons->first(fn ($l) => ! $completedLessonIds->contains($l->id)) ?? $allLessons->first())
+            : $allLessons->first();
+        $moduleCount = $course->modules->count();
+        $nextMinutes = $nextLesson?->duration_seconds
+            ? (int) ceil($nextLesson->duration_seconds / 60)
+            : null;
+        $progressPct = $lessonCount > 0 ? (int) round(($completedCount / $lessonCount) * 100) : 0;
+    @endphp
+
     <div
         x-data="{ buyOpen: {{ $errors->has('slip') ? 'true' : 'false' }} }"
         @keydown.escape.window="buyOpen = false"
     >
-        @if($course->coverUrl())
-            <div class="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100">
-                <img src="{{ $course->coverUrl() }}" alt="" class="max-h-80 w-full object-cover">
-            </div>
-        @endif
-
-        <div class="mb-10 border-b border-zinc-200 pb-8">
-            <a href="{{ route('courses.index') }}" class="text-sm text-zinc-500 hover:text-emerald-700">{{ __('Library') }}</a>
-            <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900">{{ $course->title }}</h1>
+        {{-- Hero --}}
+        <header class="mb-10 border-b border-zinc-200 pb-8">
+            <p class="font-mono text-xs text-zinc-500">
+                <a href="{{ route('courses.index') }}" class="hover:text-emerald-700">{{ __('Library') }}</a>
+                <span class="mx-1.5 text-zinc-300">/</span>
+                <span class="text-zinc-700">{{ $course->title }}</span>
+            </p>
+            <h1 class="mt-3 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ $course->title }}</h1>
 
             @if($course->description)
-                <div class="course-prose mt-4 max-w-3xl text-zinc-700">
+                <div class="course-prose mt-4 max-w-3xl text-zinc-600">
                     {!! $course->description !!}
                 </div>
             @endif
 
-            <p class="mt-4 text-sm text-zinc-500">
-                {{ trans_choice(':count episode|:count episodes', $lessonCount, ['count' => $lessonCount]) }}
+            <div class="mt-5 flex flex-wrap gap-2">
+                <span class="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-700">
+                    {{ trans_choice(':count episode|:count episodes', $lessonCount, ['count' => $lessonCount]) }}
+                </span>
                 @if($totalMinutes > 0)
-                    · {{ $totalMinutes }} {{ __('min') }}
-                @endif
-                ·
-                @if($course->isPrivate())
-                    <span class="font-medium text-zinc-700">{{ __('Private') }}</span>
-                @elseif($course->price_mmk !== null)
-                    <span class="font-medium text-zinc-700">{{ number_format($course->price_mmk) }} {{ __('MMK') }}</span>
-                @endif
-            </p>
-
-            <div class="mt-6 flex flex-wrap items-center gap-4">
-                @if($hasAccess)
-                    <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm text-emerald-700 ring-1 ring-emerald-200">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                        {{ __('Access') }}
-                        @if(auth()->user() && ! auth()->user()->isAdmin())
-                            · {{ $completion }}% {{ __('complete') }}
-                        @endif
+                    <span class="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-700">
+                        {{ $totalMinutes }} {{ __('min') }}
                     </span>
-                @elseif($course->isPublic())
-                    @auth
-                        @if($pendingPurchase)
-                            <span class="inline-flex items-center rounded-full bg-amber-50 px-4 py-1.5 text-sm text-amber-800 ring-1 ring-amber-200">
-                                {{ __('Purchase pending.') }}
-                            </span>
-                        @else
-                            <button type="button" @click="buyOpen = true" class="inline-flex rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">{{ __('Buy') }}</button>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}" class="inline-flex rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">{{ __('Sign in to buy') }}</a>
-                    @endauth
+                @endif
+                <span class="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-700">
+                    {{ trans_choice(':count module|:count modules', $moduleCount, ['count' => $moduleCount]) }}
+                </span>
+                @if($course->isPrivate())
+                    <span class="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600">{{ __('Private') }}</span>
+                @elseif($course->price_mmk !== null)
+                    <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                        {{ number_format($course->price_mmk) }} {{ __('MMK') }}
+                    </span>
                 @endif
             </div>
-        </div>
+        </header>
 
-        @foreach($course->modules as $module)
-            <section class="mb-10">
-                <h2 class="mb-4 text-xs font-bold uppercase tracking-widest text-zinc-500">{{ $module->title }}</h2>
-                <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-                    @forelse($module->lessons as $lesson)
+        <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+            {{-- Modules / lessons --}}
+            <div class="min-w-0 space-y-6">
+                @forelse($course->modules as $moduleIndex => $module)
+                    <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-panel">
+                        <div class="border-b border-zinc-200 px-5 py-4">
+                            <h2 class="flex items-baseline gap-3 text-base font-semibold text-zinc-900">
+                                <span class="font-mono text-sm font-bold text-emerald-600">{{ str_pad((string) ($moduleIndex + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                                {{ $module->title }}
+                            </h2>
+                        </div>
+                        <ul>
+                            @forelse($module->lessons as $lesson)
+                                <li class="border-b border-zinc-100 last:border-0">
+                                    @if($hasAccess)
+                                        <a href="{{ route('lessons.show', $lesson) }}"
+                                            class="flex items-center gap-3 px-5 py-3.5 transition hover:bg-zinc-50">
+                                            @if($completedLessonIds->contains($lesson->id))
+                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-50 text-emerald-700" title="{{ __('Completed') }}">
+                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                </span>
+                                            @else
+                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-500">
+                                                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                                </span>
+                                            @endif
+                                            <span class="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">{{ $lesson->title }}</span>
+                                            @if($lesson->duration_seconds)
+                                                <span class="shrink-0 font-mono text-xs text-zinc-500">{{ (int) ceil($lesson->duration_seconds / 60) }} {{ __('min') }}</span>
+                                            @endif
+                                        </a>
+                                    @else
+                                        <div class="flex items-center gap-3 px-5 py-3.5">
+                                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-400" title="{{ __('Locked') }}">
+                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                            </span>
+                                            <span class="min-w-0 flex-1 truncate text-sm font-medium text-zinc-600">{{ $lesson->title }}</span>
+                                            @if($lesson->duration_seconds)
+                                                <span class="shrink-0 font-mono text-xs text-zinc-400">{{ (int) ceil($lesson->duration_seconds / 60) }} {{ __('min') }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </li>
+                            @empty
+                                <li class="px-5 py-6 text-sm text-zinc-500">{{ __('No lessons yet.') }}</li>
+                            @endforelse
+                        </ul>
+                    </section>
+                @empty
+                    <p class="text-sm text-zinc-500">{{ __('No modules yet.') }}</p>
+                @endforelse
+            </div>
+
+            {{-- Sidebar --}}
+            <aside class="space-y-4 lg:sticky lg:top-24">
+                <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-panel shadow-sm">
+                    @if($course->coverUrl())
+                        <div class="aspect-[16/10] bg-zinc-100">
+                            <img src="{{ $course->coverUrl() }}" alt="" class="h-full w-full object-cover">
+                        </div>
+                    @else
+                        <div class="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-zinc-100 to-emerald-50">
+                            <span class="font-mono text-2xl font-bold text-emerald-700/70">{{ \Illuminate\Support\Str::substr($course->title, 0, 6) }}</span>
+                        </div>
+                    @endif
+
+                    <div class="p-5">
                         @if($hasAccess)
-                            <a href="{{ route('lessons.show', $lesson) }}" class="flex items-center gap-4 border-b border-zinc-200 px-4 py-4 last:border-0 hover:bg-zinc-50 sm:px-5">
-                                @if(isset($completedLessonIds) && $completedLessonIds->contains($lesson->id))
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-50 text-emerald-700" title="{{ __('Completed') }}">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    </span>
-                                @else
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-zinc-100 text-zinc-600">
-                                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                    </span>
-                                @endif
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-medium text-zinc-900">{{ $lesson->title }}</p>
-                                    @if($lesson->duration_seconds)
-                                        <p class="text-xs text-zinc-500">{{ (int) ceil($lesson->duration_seconds / 60) }} {{ __('min') }}</p>
-                                    @endif
-                                </div>
-                                <svg class="h-5 w-5 shrink-0 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
-                        @else
-                            <div class="flex items-center gap-4 border-b border-zinc-200 px-4 py-4 last:border-0 sm:px-5">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-400" title="{{ __('Locked') }}">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                </span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-medium text-zinc-700">{{ $lesson->title }}</p>
-                                    @if($lesson->duration_seconds)
-                                        <p class="text-xs text-zinc-500">{{ (int) ceil($lesson->duration_seconds / 60) }} {{ __('min') }}</p>
-                                    @endif
-                                </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-medium text-zinc-700">{{ __('Your progress') }}</span>
+                                <span class="font-mono text-zinc-500">{{ $completedCount }} / {{ $lessonCount }}</span>
                             </div>
+                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100">
+                                <div class="h-full rounded-full bg-emerald-500 transition-all" style="width: {{ min(100, $progressPct) }}%"></div>
+                            </div>
+
+                            @if($nextLesson)
+                                <a href="{{ route('lessons.show', $nextLesson) }}"
+                                    class="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
+                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                                    {{ $completedCount > 0 ? __('Continue :title', ['title' => $nextLesson->title]) : __('Start :title', ['title' => $nextLesson->title]) }}
+                                </a>
+                                <p class="mt-3 text-center text-xs text-zinc-500">
+                                    @if($nextMinutes)
+                                        {{ __(':title is :min minutes.', ['title' => $nextLesson->title, 'min' => $nextMinutes]) }}
+                                    @endif
+                                    @guest
+                                        {{ __('Sign in to save your progress.') }}
+                                    @endguest
+                                </p>
+                            @endif
+                        @elseif($course->isPublic())
+                            @auth
+                                @if($pendingPurchase)
+                                    <p class="rounded-lg bg-amber-50 px-3 py-2 text-center text-sm text-amber-800 ring-1 ring-amber-200">
+                                        {{ __('Purchase pending.') }}
+                                    </p>
+                                @else
+                                    <button type="button" @click="buyOpen = true"
+                                        class="flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
+                                        {{ __('Buy') }}
+                                        @if($course->price_mmk !== null)
+                                            · {{ number_format($course->price_mmk) }} {{ __('MMK') }}
+                                        @endif
+                                    </button>
+                                @endif
+                            @else
+                                <a href="{{ route('login') }}"
+                                    class="flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
+                                    {{ __('Sign in to buy') }}
+                                </a>
+                            @endauth
+                            <p class="mt-3 text-center text-xs text-zinc-500">{{ __('Sign in to save your progress.') }}</p>
+                        @else
+                            <p class="text-center text-sm text-zinc-600">{{ __('Private') }}</p>
+                            <p class="mt-2 text-center text-xs text-zinc-500">{{ __('Access is granted by an admin.') }}</p>
                         @endif
-                    @empty
-                        <p class="px-4 py-6 text-sm text-zinc-500">{{ __('No lessons yet.') }}</p>
-                    @endforelse
+                    </div>
                 </div>
-            </section>
-        @endforeach
+
+                <div class="rounded-2xl border border-zinc-200 bg-panel p-5">
+                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('Stuck on a lesson?') }}</h3>
+                    <a href="{{ route('forums.index') }}" class="mt-2 inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-600">
+                        {{ __('Ask in the forum') }} →
+                    </a>
+                </div>
+            </aside>
+        </div>
 
         @auth
             @if($course->isPublic() && ! $hasAccess && ! $pendingPurchase)

@@ -17,7 +17,7 @@
                         {{ __('Remove avatar') }}
                     </label>
                 @endif
-                <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="mt-2 w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-700 file:px-3 file:py-2 file:text-zinc-900">
+                <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="mt-2 w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-emerald-500">
                 @error('avatar')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
             <div>

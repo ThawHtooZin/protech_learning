@@ -37,8 +37,15 @@
         @yield('content')
     </main>
 
-    <footer class="relative z-10 border-t border-zinc-200 py-8 text-center text-xs text-zinc-600">
-        {{ config('app.name') }} — {{ __('Learn at your pace.') }}
+    <footer class="relative z-10 border-t border-zinc-200 py-8">
+        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-zinc-600 sm:flex-row sm:px-6 lg:px-8">
+            <p>{{ config('app.name') }} — {{ __('Learn at your pace.') }}</p>
+            <nav class="flex flex-wrap items-center justify-center gap-4" data-compact-my>
+                <a href="{{ route('courses.index') }}" class="hover:text-emerald-700">{{ __('Browse') }}</a>
+                <a href="{{ route('forums.index') }}" class="hover:text-emerald-700">{{ __('Forum') }}</a>
+                @include('partials.locale-switcher')
+            </nav>
+        </div>
     </footer>
 
     @if(!empty($notiCatchup))

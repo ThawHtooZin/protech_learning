@@ -29,7 +29,7 @@ class CourseCatalogController extends Controller
                             ->where('is_listed', true);
                     });
             })
-            ->with(['modules.lessons'])
+            ->with(['modules' => fn ($q) => $q->orderBy('sort_order'), 'modules.lessons' => fn ($q) => $q->orderBy('sort_order')])
             ->orderBy('title')
             ->get();
 
@@ -54,7 +54,10 @@ class CourseCatalogController extends Controller
             abort(404);
         }
 
-        $course->load(['modules.lessons']);
+        $course->load([
+            'modules' => fn ($q) => $q->orderBy('sort_order'),
+            'modules.lessons' => fn ($q) => $q->orderBy('sort_order'),
+        ]);
 
         $hasAccess = $user && $this->lessonAccess->canAccessCourse($user, $course);
         $pendingPurchase = null;

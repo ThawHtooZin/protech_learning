@@ -37,6 +37,7 @@ class ProfileSocialTest extends TestCase
         $this->assertEquals('https://github.com/learner1', $profile->social_links['github']);
         $this->assertNotNull($profile->avatar_path);
         Storage::disk('public')->assertExists($profile->avatar_path);
+        $this->assertSame('/storage/'.$profile->avatar_path, $profile->avatarUrl());
     }
 
     public function test_invalid_avatar_is_rejected(): void
