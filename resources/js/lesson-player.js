@@ -7,6 +7,7 @@ function initLessonPlayer(root) {
     const startPosition = parseInt(root.dataset.startPosition || '0', 10);
     const intervalSec = parseInt(root.dataset.saveInterval || '15', 10);
     const kind = root.dataset.playerKind;
+    const resumeBtn = document.querySelector('[data-resume-playback]');
 
     if (!progressUrl) {
         return;
@@ -14,6 +15,7 @@ function initLessonPlayer(root) {
 
     let lastSaved = 0;
     let pendingPosition = startPosition;
+    let seekTo = null;
 
     const save = async (position) => {
         pendingPosition = Math.max(0, Math.floor(position));
@@ -43,16 +45,40 @@ function initLessonPlayer(root) {
         }
     };
 
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            const at = parseInt(resumeBtn.dataset.resumeAt || String(startPosition), 10);
+            if (typeof seekTo === 'function') {
+                seekTo(at, true);
+            }
+        });
+    }
+
     if (kind === 'html5') {
         const video = root.querySelector('video');
         if (!video) {
             return;
         }
+
+        seekTo = (seconds, play) => {
+            const apply = () => {
+                video.currentTime = Math.max(0, seconds);
+                if (play) {
+                    video.play().catch(() => {});
+                }
+            };
+            if (video.readyState >= 1) {
+                apply();
+            } else {
+                video.addEventListener('loadedmetadata', apply, { once: true });
+            }
+        };
+
         if (startPosition > 0) {
-            video.addEventListener('loadedmetadata', () => {
-                video.currentTime = startPosition;
-            }, { once: true });
+            seekTo(startPosition, false);
         }
+
         video.addEventListener('timeupdate', () => maybeSave(video.currentTime));
         video.addEventListener('pause', () => save(video.currentTime));
         window.addEventListener('beforeunload', () => save(video.currentTime));
@@ -61,7 +87,7 @@ function initLessonPlayer(root) {
 
     if (kind === 'youtube') {
         const videoId = root.dataset.youtubeId;
-        if (!videoId || !window.YT) {
+        if (!videoId || !window.YT?.Player) {
             return;
         }
 
@@ -70,7 +96,19 @@ function initLessonPlayer(root) {
             return;
         }
 
-        const player = new window.YT.Player(targetId, {
+        let player = null;
+
+        seekTo = (seconds, play) => {
+            if (!player || typeof player.seekTo !== 'function') {
+                return;
+            }
+            player.seekTo(Math.max(0, seconds), true);
+            if (play && typeof player.playVideo === 'function') {
+                player.playVideo();
+            }
+        };
+
+        player = new window.YT.Player(targetId, {
             videoId,
             playerVars: {
                 modestbranding: 1,
@@ -78,6 +116,11 @@ function initLessonPlayer(root) {
                 start: startPosition > 0 ? startPosition : undefined,
             },
             events: {
+                onReady: () => {
+                    if (startPosition > 0) {
+                        seekTo(startPosition, false);
+                    }
+                },
                 onStateChange: (event) => {
                     if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
                         save(player.getCurrentTime());
