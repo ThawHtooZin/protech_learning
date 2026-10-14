@@ -135,7 +135,9 @@ class UserAdminController extends Controller
             'password' => $validated['password'],
         ])->save();
 
-        return back()->with('status', __('Password updated for :name.', ['name' => $user->name]));
+        $label = $user->profile?->display_name ?? $user->email;
+
+        return back()->with('status', __('Password updated for :name.', ['name' => $label]));
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
